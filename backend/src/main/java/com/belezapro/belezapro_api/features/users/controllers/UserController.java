@@ -1,5 +1,6 @@
 package com.belezapro.belezapro_api.features.users.controllers;
 
+import com.belezapro.belezapro_api.features.authentication.annotation.RequireRoles;
 import com.belezapro.belezapro_api.features.users.dto.UserDto;
 import com.belezapro.belezapro_api.features.users.services.UserService;
 
@@ -18,6 +19,7 @@ public class UserController {
     }
 
     @GetMapping
+    @RequireRoles({"ROLE_ADMIN"})
     public List<UserDto> getAll() {
         return userService.getAll();
     }
