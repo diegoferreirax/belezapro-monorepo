@@ -1,0 +1,10 @@
+services:
+  angular-web-app:
+    container_name: angular-web-app
+    image: 22-alpine
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "4200:80"
+      

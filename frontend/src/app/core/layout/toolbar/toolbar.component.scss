@@ -1,0 +1,40 @@
+.toolbar {
+  h1.app-name {
+    margin-left: 8px;
+    cursor: pointer;
+  }
+
+  img.app-image {
+    height: 32px;
+    cursor: pointer;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .user-profile {
+    border-radius: 10%;
+    padding: var(--mdc-menu-container-padding, 0px 8px);
+
+    img {
+      border-radius: 50%;
+    }
+
+    &:hover {
+      cursor: pointer;
+
+      background-color: var(
+        --mdc-protected-button-hover-state-layer-color,
+        rgba(60, 60, 60, 0.12)
+      );
+    }
+  }
+}
+
+.is-mobile {
+  .toolbar {
+    position: fixed;
+    z-index: 2;
+  }
+}

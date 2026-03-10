@@ -1,0 +1,56 @@
+<mat-toolbar class="toolbar flex-container g-2">
+  <button mat-icon-button (click)="menuService.toggleMenu()">
+    <mat-icon>{{ menuService.menuOpened() ? 'menu_open' : 'menu' }}</mat-icon>
+  </button>
+  
+  <img class="app-image" src="assets/angular.svg" alt="Angular" routerLink="/" />
+  @if (!menuService.isMobile()) {
+  <h1 class="app-name" routerLink="/">Angular Web App</h1>
+  }
+  <span class="spacer"></span>
+
+  <button
+    aria-label="Trocar tema"
+    mat-icon-button
+    (click)="toggleTheme()"
+  >
+    <mat-icon aria-hidden="false">
+      {{ isLightTheme ? 'dark_mode' : 'light_mode' }}
+    </mat-icon>
+  </button>
+
+  <button mat-icon-button aria-label="Notificações">
+    <mat-icon matBadge="8" aria-hidden="false">
+      notifications
+    </mat-icon>
+  </button>
+
+  <div class="flex-container g-1 user-profile">
+    <p class="fs-1">{{ username }}</p>
+    <img
+      src="https://i.pravatar.cc/32"
+      alt="Avatar do usuário"
+    />
+  </div>
+
+  <button
+    data-testid="menu-button"
+    aria-label="Example icon-button with a menu"
+    mat-icon-button
+    [matMenuTriggerFor]="menu"
+  >
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item>
+      <span>Settings</span>
+    </button>
+    <button mat-menu-item>
+      <span>Support</span>
+    </button>
+    <button mat-menu-item>
+      <span>F.A.Q.</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>

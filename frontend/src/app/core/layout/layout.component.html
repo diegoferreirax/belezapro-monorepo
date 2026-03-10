@@ -1,0 +1,25 @@
+<div class="container" [class.is-mobile]="menuService.isMobile()">
+  <app-toolbar></app-toolbar>
+
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav
+      #snav
+      fixedTopGap="56"
+      [mode]="menuService.isMobile() ? 'over' : 'side'"
+      [fixedInViewport]="menuService.isMobile()"
+      [opened]="menuService.isMobile() ? false : true"
+      (closedStart)="onSidenavClosed()"
+    >
+      <div class="sidebar-navegation">
+        <app-navegation></app-navegation>
+        <mat-divider class="sidebar-navegation-divider"></mat-divider>
+      </div>
+
+      <app-footer></app-footer>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <router-outlet />
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

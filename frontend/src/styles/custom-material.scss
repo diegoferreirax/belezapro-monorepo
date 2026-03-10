@@ -1,0 +1,37 @@
+$border-color: var(
+  --mdc-protected-button-hover-state-layer-color,
+  rgba(60, 60, 60, 50%)
+);
+
+.mat-drawer-side {
+  border-color: $border-color !important;
+  border-width: 1px;
+  border-radius: inherit !important;
+}
+
+.mat-divider {
+  border-color: $border-color !important;
+}
+
+.mat-toolbar.toolbar {
+  border-bottom: 1px solid $border-color !important;
+}
+
+.mat-mdc-nav-list .mat-mdc-list-item,
+.mat-drawer {
+  border-radius: inherit !important;
+}
+
+.mat-mdc-icon-button img,
+.mat-mdc-icon-button svg {
+  width: 35px !important;
+  height: 35px !important;
+  border-radius: 50%;
+  margin: -6px;
+}
+
+.mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
