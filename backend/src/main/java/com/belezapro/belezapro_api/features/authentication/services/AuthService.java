@@ -16,7 +16,7 @@ public class AuthService {
 
     private final String secret;
 
-    public AuthService(@Value("${jwt.secret:changeit-secret}") String secret) {
+    public AuthService(@Value("${jwt.secret}") String secret) {
         this.secret = secret;
     }
 

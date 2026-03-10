@@ -1,0 +1,12 @@
+**/build
+**/.gradle
+**/out
+.gradle
+.gradle/*
+**/node_modules
+**/target
+.DS_Store
+.git
+.gitignore
+Dockerfile
+docker-compose.yml

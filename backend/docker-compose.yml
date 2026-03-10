@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    image: belezapro-api:latest
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring Boot property jwt.secret can be overridden via env var JWT_SECRET
+      - JWT_SECRET=changeit-secret
+      - JAVA_OPTS=-Xms256m -Xmx512m
+    restart: unless-stopped
