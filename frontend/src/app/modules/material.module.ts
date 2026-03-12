@@ -13,6 +13,9 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSelectModule } from '@angular/material/select';
 import { LayoutModule } from '@angular/cdk/layout';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatCard, MatCardHeader, MatCardContent, MatCardActions, MatCardTitle } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @NgModule({
   imports: [
@@ -28,7 +31,14 @@ import { MatDialogModule } from '@angular/material/dialog';
     MatSlideToggleModule,
     MatSelectModule,
     MatDialogModule,
-    LayoutModule
+    MatCard,
+    MatCardHeader,
+    MatCardContent,
+    MatCardActions,
+    MatCardTitle,
+    LayoutModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   exports: [
     MatSidenavModule,
@@ -43,7 +53,14 @@ import { MatDialogModule } from '@angular/material/dialog';
     MatSlideToggleModule,
     MatSelectModule,
     MatDialogModule,
-    LayoutModule
+    MatCard,
+    MatCardHeader,
+    MatCardContent,
+    MatCardActions,
+    MatCardTitle,
+    LayoutModule,
+    MatFormFieldModule,
+    MatInputModule
   ]
 })
-export class MaterialModule {}
+export class MaterialModule { }

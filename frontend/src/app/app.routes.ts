@@ -22,5 +22,9 @@ export const routes: Routes = [
     path: 'settings/preferences',
     loadComponent: () => import('./features/dashboard/dashboard.component').then((c) => c.DashboardComponent)
   },
+  {
+    path: 'login',
+    loadComponent: () => import('./features/login/login.component').then((c) => c.LoginComponent)
+  },
   { path: '**', component: PageNotFoundComponent }
 ];

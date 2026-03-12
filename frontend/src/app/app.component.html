@@ -1,1 +1,6 @@
-<layout></layout>
+<ng-container *ngIf="authService.isLoggedIn$ | async; else showLogin">
+  <layout></layout>
+</ng-container>
+<ng-template #showLogin>
+  <app-login></app-login>
+</ng-template>
