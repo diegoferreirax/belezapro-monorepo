@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  build-frontend:
     runs-on: ubuntu-latest
 
     defaults:
@@ -41,8 +41,8 @@ jobs:
         with:
           path: frontend/build
 
-  deploy:
-    needs: build
+  deploy-pages:
+    needs: build-frontend
     runs-on: ubuntu-latest
 
     environment:
