@@ -1,9 +1,8 @@
-name: Deploy - Angular Web App
+name: Deploy - Frontend & Backend
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -16,14 +15,11 @@ env:
 jobs:
   build-frontend:
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: frontend
-
     env:
       PUBLIC_URL: https://diegoferreirax.github.io/belezapro-monorepo
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -47,11 +43,9 @@ jobs:
   deploy-pages:
     needs: build-frontend
     runs-on: ubuntu-latest
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Configure Pages
         uses: actions/configure-pages@v4
@@ -59,44 +53,118 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-  
+
   docker-frontend:
     needs: build-frontend
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Get version number
-      id: version
-      run: |
-        VERSION=$(git rev-list --count HEAD)
-        IMAGE_NAME="${{ secrets.DOCKER_IMAGE_NAME }}"
-        FULL_TAG="${IMAGE_NAME}:${VERSION}"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "tag=$FULL_TAG" >> $GITHUB_OUTPUT
-        echo "Building version: $VERSION"
-        echo "Full tag: $FULL_TAG"
+      - name: Get version number
+        id: version
+        run: |
+          VERSION=$(git rev-list --count HEAD)
+          IMAGE_NAME="${{ secrets.DOCKER_IMAGE_NAME }}"
+          FULL_TAG="${IMAGE_NAME}:${VERSION}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$FULL_TAG" >> $GITHUB_OUTPUT
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./frontend
-        file: ./frontend/Dockerfile
-        push: true
-        tags: ${{ steps.version.outputs.tag }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build and push Docker image (frontend)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ steps.version.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    outputs:
+      jar-path: ${{ steps.upload-artifact.outputs.artifact-path || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('backend/**/*.gradle*', 'backend/**/build.gradle*') }}
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build backend (Gradle)
+        run: ./gradlew clean build --no-daemon
+
+      - name: Upload build artifact (jar)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/build/libs/*.jar
+
+  docker-backend:
+    needs: build-backend
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Get version number
+        id: version-backend
+        run: |
+          VERSION=$(git rev-list --count HEAD)
+          IMAGE_NAME="${{ secrets.BACKEND_DOCKER_IMAGE }}"
+          FULL_TAG="${IMAGE_NAME}:${VERSION}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$FULL_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image (backend)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.version-backend.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
