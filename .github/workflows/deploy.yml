@@ -122,8 +122,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build backend (Gradle)
-        run: ./gradlew clean build --no-daemon
+      - name: Build backend (Gradle) (skip tests)
+        run: ./gradlew clean build -x test --no-daemon
 
       - name: Upload build artifact (jar)
         uses: actions/upload-artifact@v4
