@@ -29,4 +29,20 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
+    @PostMapping("/otp/request")
+    public ResponseEntity<Void> requestOtp(@RequestBody AuthRequest request) {
+        authService.requestOtp(request.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/otp/validate")
+    public ResponseEntity<AuthResponse> validateOtp(@RequestBody AuthRequest request) {
+        try {
+            String token = authService.validateOtp(request.email(), request.password());
+            return ResponseEntity.ok(new AuthResponse(token));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 }

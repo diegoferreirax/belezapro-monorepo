@@ -23,8 +23,16 @@ export class OtpLoginComponent {
 
   sendCode() {
     if (this.otpForm.get('email')?.valid) {
-      this.codeSent = true;
-      alert('Código enviado para ' + this.otpForm.value.email);
+      this.authService.requestClientOtp(this.otpForm.value.email).subscribe({
+        next: () => {
+          this.codeSent = true;
+          this.otpForm.get('email')?.disable(); // Disable editing of email after sending
+          alert('Código OTP enviado ao e-mail ' + this.otpForm.getRawValue().email);
+        },
+        error: (err) => {
+          alert('Erro ao processar solicitação de OTP. Verifique os logs.');
+        }
+      });
     } else {
       alert('Por favor, insira um e-mail válido.');
     }
@@ -32,15 +40,21 @@ export class OtpLoginComponent {
 
   onSubmit() {
     if (this.otpForm.valid) {
-      try {
-        if (this.authService.loginClient(this.otpForm.value.email, this.otpForm.value.otp)) {
+      const email = this.otpForm.getRawValue().email;
+      const otp = this.otpForm.value.otp;
+      
+      this.authService.validateClientOtp(email, otp).subscribe({
+        next: () => {
           this.router.navigate(['/client']);
-        } else {
-          alert('E-mail ou OTP inválidos');
+        },
+        error: (err) => {
+          if (err.status === 401) {
+            alert('Acesso Negado: Código inválido, expirado ou usuário bloqueado.');
+          } else {
+            alert('Falha na conexão com o servidor de autenticação.');
+          }
         }
-      } catch (e: unknown) {
-        alert(e instanceof Error ? e.message : 'Erro ao fazer login');
-      }
+      });
     }
   }
 }

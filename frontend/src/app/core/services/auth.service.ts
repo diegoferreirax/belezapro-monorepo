@@ -60,21 +60,19 @@ export class AuthService {
     );
   }
 
-  loginClient(email: string, otp: string) {
-    const client = this.salonService.getClientByEmail(email);
-    if (client?.isBlocked) {
-      throw new Error('Sua conta está bloqueada. Entre em contato com o salão.');
-    }
+  requestClientOtp(email: string): Observable<void> {
+    return this.httpClient.post<void>('http://localhost:8080/api/auth/otp/request', { email });
+  }
 
-    if (otp === '123456') {
-      const user = { role: 'CLIENT' as UserRole, name: client?.name || 'Cliente', email: email };
-      this.currentUser.set(user);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(user));
-      }
-      return true;
-    }
-    return false;
+  validateClientOtp(email: string, otp: string): Observable<{token: string}> {
+    return this.httpClient.post<{token: string}>('http://localhost:8080/api/auth/otp/validate', { email, password: otp }).pipe(
+      tap(response => {
+        if (response.token) {
+          this.localStorage.saveRaw('auth_token', { token: response.token });
+          this.checkSession();
+        }
+      })
+    );
   }
 
   logout() {
