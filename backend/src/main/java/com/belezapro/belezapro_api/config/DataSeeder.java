@@ -21,16 +21,30 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.count() == 0) {
-            User admin = User.builder()
-                    .name("Administrador")
-                    .email("admin@belezapro.com")
-                    .password(passwordEncoder.encode("admin123"))
-                    .role(Role.ADMIN)
+            User root = User.builder()
+                    .name("Dono do Sistema")
+                    .email("root@belezapro.com")
+                    .password(passwordEncoder.encode("root123"))
+                    .role(Role.ROOT)
                     .isBlocked(false)
                     .build();
 
-            userRepository.save(admin);
-            System.out.println("Usuário Admin seedado! Email: admin@belezapro.com | Senha: admin123");
+            userRepository.save(root);
+            System.out.println("Usuário ROOT seedado! Email: root@belezapro.com | Senha: root123");
+
+            // Seedando 35 usuários aleatórios para testes de paginação
+            for (int i = 1; i <= 35; i++) {
+                User mockUser = User.builder()
+                        .name("Usuário Teste " + i)
+                        .email("usuario" + i + "@teste.com")
+                        .password(passwordEncoder.encode("senha123"))
+                        .role(i % 5 == 0 ? Role.ADMIN : Role.CLIENT) // 1 a cada 5 será ADMIN
+                        .isBlocked(i % 7 == 0) // 1 a cada 7 nascerá bloqueado para teste
+                        .build();
+                
+                userRepository.save(mockUser);
+            }
+            System.out.println("✅ 35 usuários mockados gerados para testes de paginação e UI.");
         }
     }
 }

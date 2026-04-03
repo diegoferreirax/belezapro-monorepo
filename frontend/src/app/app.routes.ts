@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { adminGuard } from './core/guards/admin.guard';
 import { clientGuard } from './core/guards/client.guard';
 
+import { rootGuard } from './core/guards/root.guard';
+
 export const routes: Routes = [
   {
     path: '',
@@ -37,6 +39,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     children: [
       { path: '', redirectTo: 'appointments', pathMatch: 'full' },
+      {
+        path: 'users',
+        canActivate: [rootGuard],
+        loadComponent: () => import('./features/admin/root-users/root-users.component').then(m => m.RootUsersComponent)
+      },
       {
         path: 'appointments',
         loadComponent: () => import('./features/admin/appointments/appointments.component').then(m => m.AppointmentsComponent)

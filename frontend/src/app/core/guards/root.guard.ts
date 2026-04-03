@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-export const adminGuard: CanActivateFn = () => {
+export const rootGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
@@ -12,9 +12,12 @@ export const adminGuard: CanActivateFn = () => {
     return true;
   }
 
-  if (authService.isAdmin()) {
+  if (authService.isRoot()) {
     return true;
   }
 
+  if (authService.isAdmin()) {
+    return router.parseUrl('/admin');
+  }
   return router.parseUrl('/');
 };

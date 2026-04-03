@@ -17,7 +17,7 @@ export class BookingPageComponent {
 
   navigateToClient() {
     const user = this.authService.getUser()();
-    if (user && user.role === 'client') {
+    if (user && user.role === 'CLIENT') {
       this.router.navigate(['/client']);
     } else {
       this.router.navigate(['/entrar']);
@@ -26,7 +26,7 @@ export class BookingPageComponent {
 
   navigateToAdmin() {
     const user = this.authService.getUser()();
-    if (user && user.role === 'admin') {
+    if (user && user.role === 'ADMIN') {
       this.router.navigate(['/admin']);
     } else {
       this.router.navigate(['/login']);

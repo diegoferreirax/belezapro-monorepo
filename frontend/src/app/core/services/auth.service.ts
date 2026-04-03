@@ -1,45 +1,63 @@
 import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { SalonService } from '../../core/services/salon.service';
+import { LocalStorageRepository } from '../repositories/local-storage.repository';
+import { jwtDecode } from 'jwt-decode';
+import { Observable, tap } from 'rxjs';
 
-export type UserRole = 'admin' | 'client' | null;
+export type UserRole = 'ROOT' | 'ADMIN' | 'CLIENT' | null;
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private httpClient = inject(HttpClient);
+  private localStorage = inject(LocalStorageRepository);
   private salonService = inject(SalonService);
+  
   private currentUser = signal<{ role: UserRole, name: string, email: string } | null>(null);
 
   constructor() {
+    this.checkSession();
+  }
+
+  private checkSession() {
     if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        this.currentUser.set(JSON.parse(savedUser));
+      const tokenObj = this.localStorage.getRaw<{token: string}>('auth_token');
+      if (tokenObj && tokenObj.token) {
+        try {
+          const decoded = jwtDecode<any>(tokenObj.token);
+          if (decoded.exp && (decoded.exp * 1000 < Date.now())) {
+            console.warn("Token JWT expirou.");
+            this.logout();
+            return;
+          }
+          
+          const rawRole = decoded.roles && decoded.roles.length > 0 ? decoded.roles[0] : '';
+          const finalRole = rawRole.replace('ROLE_', '');
+
+          this.currentUser.set({
+             role: finalRole as UserRole,
+             name: decoded.sub || 'Usuário',
+             email: decoded.sub
+          });
+        } catch(e) {
+          console.error("Erro fatal ao extrair sessão do JWT:", e);
+          this.logout();
+        }
       }
     }
   }
 
-  private setStorage(key: string, value: string) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(key, value);
-    }
-  }
-
-  private removeStorage(key: string) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(key);
-    }
-  }
-
-  loginAdmin(username: string, password: string) {
-    // Simulating admin login
-    if (username === 'maria' && password === 'admin123') {
-      const user = { role: 'admin' as UserRole, name: 'Maria', email: 'maria@salon.com' };
-      this.currentUser.set(user);
-      this.setStorage('user', JSON.stringify(user));
-      return true;
-    }
-    return false;
+  loginAdmin(email: string, password: string): Observable<{token: string}> {
+    return this.httpClient.post<{token: string}>('http://localhost:8080/api/auth/login', { email, password }).pipe(
+      tap(response => {
+        if (response.token) {
+          this.localStorage.saveRaw('auth_token', { token: response.token });
+          this.checkSession();
+        }
+      })
+    );
   }
 
   loginClient(email: string, otp: string) {
@@ -48,11 +66,12 @@ export class AuthService {
       throw new Error('Sua conta está bloqueada. Entre em contato com o salão.');
     }
 
-    // Simulating OTP login
     if (otp === '123456') {
-      const user = { role: 'client' as UserRole, name: client?.name || 'Cliente', email: email };
+      const user = { role: 'CLIENT' as UserRole, name: client?.name || 'Cliente', email: email };
       this.currentUser.set(user);
-      this.setStorage('user', JSON.stringify(user));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
       return true;
     }
     return false;
@@ -60,15 +79,16 @@ export class AuthService {
 
   logout() {
     this.currentUser.set(null);
-    this.removeStorage('user');
+    this.localStorage.saveRaw('auth_token', null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+    }
   }
 
   updateUserName(name: string) {
     const user = this.currentUser();
     if (user) {
-      const updatedUser = { ...user, name };
-      this.currentUser.set(updatedUser);
-      this.setStorage('user', JSON.stringify(updatedUser));
+      this.currentUser.set({ ...user, name });
     }
   }
 
@@ -76,20 +96,16 @@ export class AuthService {
     return this.currentUser.asReadonly();
   }
 
+  isRoot() {
+    return this.currentUser()?.role === 'ROOT';
+  }
+
   isAdmin() {
-    return this.currentUser()?.role === 'admin';
+    return this.currentUser()?.role === 'ADMIN' || this.isRoot();
   }
 
   isClient() {
-    const user = this.currentUser();
-    if (user?.role === 'client') {
-      const client = this.salonService.getClientByEmail(user.email);
-      if (client?.isBlocked) {
-        this.logout();
-        return false;
-      }
-      return true;
-    }
-    return false;
+    return this.currentUser()?.role === 'CLIENT';
   }
 }
+

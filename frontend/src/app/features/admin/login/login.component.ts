@@ -23,11 +23,15 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.valid) {
       const { username, password } = this.loginForm.value;
-      if (this.authService.loginAdmin(username, password)) {
-        this.router.navigate(['/admin']);
-      } else {
-        alert('Invalid credentials');
-      }
+      this.authService.loginAdmin(username, password).subscribe({
+        next: () => {
+          this.router.navigate(['/admin']);
+        },
+        error: (err) => {
+          console.error('Login failed', err);
+          alert('Credenciais inválidas ou erro no servidor!');
+        }
+      });
     }
   }
 }

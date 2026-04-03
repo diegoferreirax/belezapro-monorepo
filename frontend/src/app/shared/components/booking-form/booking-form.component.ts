@@ -32,7 +32,7 @@ export class BookingFormComponent implements OnInit {
   services = signal<Service[]>([]);
   appointments = signal<Appointment[]>([]);
   scheduleConfigs = signal<DayScheduleConfig[]>([]);
-  
+
   bookingForm = this.fb.group({
     client: this.fb.group({
       name: ['', Validators.required],
@@ -68,12 +68,12 @@ export class BookingFormComponent implements OnInit {
   availableTimes = computed(() => {
     const date = this.formValue()?.date;
     const duration = this.totalDuration();
-    
+
     // Basic validation for date format YYYY-MM-DD
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return [];
     }
-    
+
     return this.scheduleCalculator.getAvailableTimes(
       date,
       duration,
@@ -123,12 +123,12 @@ export class BookingFormComponent implements OnInit {
           });
           this.bookingForm.get('client')?.disable();
         }
-        
+
         // Populate services
         appointment.serviceIds.forEach(serviceId => {
           this.selectedServicesArray.push(this.fb.control(serviceId));
         });
-        
+
         // Ensure the time is set correctly after services are populated
         this.bookingForm.patchValue({ time: appointment.startTime });
       }
@@ -148,7 +148,7 @@ export class BookingFormComponent implements OnInit {
         }
       } else {
         const user = this.authService.getUser()();
-        if (user && user.role === 'client' && user.email) {
+        if (user && user.role === 'CLIENT' && user.email) {
           const client = this.salonService.getClientByEmail(user.email);
           if (client) {
             this.bookingForm.patchValue({
@@ -169,7 +169,7 @@ export class BookingFormComponent implements OnInit {
           }
         }
       }
-      
+
       const pDate = this.prefillDate();
       if (pDate) {
         this.bookingForm.patchValue({ date: pDate });
@@ -223,10 +223,10 @@ export class BookingFormComponent implements OnInit {
     if (this.bookingForm.invalid) return;
 
     const val = this.bookingForm.getRawValue();
-    
+
     // 1. Handle Client
     let client = this.salonService.getClientByEmail(val.client.email!);
-    
+
     if (client?.isBlocked) {
       alert('Não é possível realizar o agendamento. Por favor, entre em contato com o salão.');
       return;
