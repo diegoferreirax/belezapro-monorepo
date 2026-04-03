@@ -1,3 +1,3 @@
 package com.belezapro.belezapro_api.features.users.dto;
 
-public record UserDto(Long id, String nome, String email) {}
+public record UserDto(String id, String name, String email) {}

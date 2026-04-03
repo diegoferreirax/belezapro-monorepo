@@ -2,40 +2,53 @@ package com.belezapro.belezapro_api.features.authentication.services;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.belezapro.belezapro_api.features.users.models.User;
+import com.belezapro.belezapro_api.features.users.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class AuthService {
 
-    // TODO: Replace with real user store and password hashing
-    private static final String USERNAME = "admin";
-    private static final String PASSWORD = "password123";
-
     private final String secret;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(@Value("${jwt.secret}") String secret) {
+    public AuthService(@Value("${jwt.secret}") String secret, 
+                       UserRepository userRepository, 
+                       PasswordEncoder passwordEncoder) {
         this.secret = secret;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public String authenticate(String username, String password) {
-        if (USERNAME.equals(username) && PASSWORD.equals(password)) {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
+    public String authenticate(String email, String password) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
 
-            // TODO: In a real app, fetch user roles from DB
-            String role = "ROLE_USER";
-            if ("admin".equals(username)) {
-                role = "ROLE_ADMIN";
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            
+            if (user.isBlocked()) {
+                throw new IllegalArgumentException("User is blocked");
             }
 
-            return JWT.create()
-                    .withSubject(username)
-                    .withArrayClaim("roles", new String[]{role})
-                    .withIssuedAt(new Date())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + 3600_000))
-                    .sign(algorithm);
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                Algorithm algorithm = Algorithm.HMAC256(secret);
+
+                String role = "ROLE_" + user.getRole().name();
+
+                return JWT.create()
+                        .withSubject(user.getEmail())
+                        .withClaim("userId", user.getId())
+                        .withArrayClaim("roles", new String[]{role})
+                        .withIssuedAt(new Date())
+                        .withExpiresAt(new Date(System.currentTimeMillis() + 3600_000))
+                        .sign(algorithm);
+            }
         }
         throw new IllegalArgumentException("Invalid credentials");
     }

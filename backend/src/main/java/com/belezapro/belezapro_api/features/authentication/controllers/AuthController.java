@@ -23,7 +23,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
         try {
-            String token = authService.authenticate(request.username(), request.password());
+            String token = authService.authenticate(request.email(), request.password());
             return ResponseEntity.ok(new AuthResponse(token));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
