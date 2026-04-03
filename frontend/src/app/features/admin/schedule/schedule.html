@@ -1,0 +1,191 @@
+<div class="max-w-4xl mx-auto">
+  <header
+    class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8"
+  >
+    <div>
+      <h2 class="text-3xl font-serif italic text-stone-800">
+        Horários de Trabalho
+      </h2>
+      <p class="text-stone-500 mt-1">Configure a disponibilidade do salão.</p>
+    </div>
+    <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+      <button
+        (click)="saveConfigs()"
+        class="w-full sm:w-auto flex items-center justify-center gap-2 bg-stone-800 text-white px-8 py-2.5 rounded-full hover:bg-stone-700 transition-all shadow-lg"
+      >
+        <mat-icon class="text-sm">save</mat-icon>
+        <span>Salvar</span>
+      </button>
+    </div>
+  </header>
+
+  <div
+    class="flex items-center justify-between bg-white p-4 rounded-2xl border border-stone-100 shadow-sm mb-6"
+  >
+    <button
+      (click)="prevWeek()"
+      [disabled]="!canGoToPrevWeek()"
+      class="p-2 hover:bg-stone-50 rounded-full text-stone-400 hover:text-stone-800 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-stone-400 disabled:cursor-not-allowed transition-colors"
+    >
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <div class="flex flex-col items-center">
+      <span class="text-sm font-bold text-stone-800 uppercase tracking-widest"
+        >{{ weekRangeDisplay() }}</span
+      >
+      <button
+        (click)="goToCurrentWeek()"
+        class="text-xs text-stone-400 hover:text-stone-600 mt-1 underline decoration-stone-200 underline-offset-4"
+      >
+        Voltar para semana atual
+      </button>
+    </div>
+    <button
+      (click)="nextWeek()"
+      class="p-2 hover:bg-stone-50 rounded-full text-stone-400 hover:text-stone-800 transition-colors"
+    >
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <div class="space-y-6">
+    @for (config of dayConfigs(); track config.dayOfWeek) {
+    <div class="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm">
+      <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6"
+      >
+        <div class="flex items-center gap-4">
+          <div
+            [class]="config.isClosed ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-600'"
+            class="w-12 h-12 rounded-2xl flex items-center justify-center font-serif text-xl italic shrink-0"
+          >
+            {{ weekDays[config.dayOfWeek].charAt(0) }}
+          </div>
+          <div>
+            <div class="flex items-baseline gap-2">
+              <h3 class="font-medium text-stone-800">
+                {{ weekDays[config.dayOfWeek] }}
+              </h3>
+              @if (mode() === 'specific') {
+              <span class="text-xs font-mono text-stone-400"
+                >{{ formatDate(config.date) }}</span
+              >
+              }
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                [(ngModel)]="config.isClosed"
+                [id]="'closed-' + config.dayOfWeek"
+                class="w-4 h-4 accent-stone-800"
+              />
+              <label
+                [for]="'closed-' + config.dayOfWeek"
+                class="text-xs text-stone-400 uppercase tracking-wider cursor-pointer"
+                >Fechado</label
+              >
+            </div>
+          </div>
+        </div>
+
+        @if (!config.isClosed) {
+        <div class="flex items-center gap-3 bg-stone-50 p-2 rounded-2xl">
+          <div class="flex flex-col">
+            <span class="text-[10px] text-stone-400 uppercase font-bold px-2"
+              >Início</span
+            >
+            <select
+              [(ngModel)]="config.startTime"
+              (ngModelChange)="onStartTimeChange(config)"
+              class="bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-pointer"
+            >
+              @for (time of timeOptions; track time) {
+              <option [value]="time">{{ time }}</option>
+              }
+            </select>
+          </div>
+          <div class="w-px h-8 bg-stone-200"></div>
+          <div class="flex flex-col">
+            <span class="text-[10px] text-stone-400 uppercase font-bold px-2"
+              >Fim</span
+            >
+            <select
+              [(ngModel)]="config.endTime"
+              class="bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-pointer"
+            >
+              @for (time of getAvailableEndTimes(config.startTime); track time)
+              {
+              <option [value]="time">{{ time }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        }
+      </div>
+
+      @if (!config.isClosed) {
+      <div class="border-t border-stone-50 pt-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4
+            class="text-xs font-bold text-stone-400 uppercase tracking-widest"
+          >
+            Intervalos / Almoço
+          </h4>
+          <button
+            (click)="addBreak(config)"
+            class="text-xs text-stone-600 hover:text-stone-900 flex items-center gap-1"
+          >
+            <mat-icon class="text-sm">add</mat-icon> Adicionar
+          </button>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          @for (brk of config.breaks; track $index) {
+          <div
+            class="flex items-center gap-2 bg-stone-50 pl-3 pr-1 py-1 rounded-xl border border-stone-100"
+          >
+            <select
+              [(ngModel)]="brk.start"
+              (ngModelChange)="onBreakStartTimeChange(brk)"
+              class="bg-transparent border-none p-0 text-sm w-[72px] focus:ring-0 cursor-pointer"
+            >
+              @for (time of timeOptions; track time) {
+              <option [value]="time">{{ time }}</option>
+              }
+            </select>
+            <span class="text-stone-300">→</span>
+            <select
+              [(ngModel)]="brk.end"
+              class="bg-transparent border-none p-0 text-sm w-[72px] focus:ring-0 cursor-pointer"
+            >
+              @for (time of getAvailableEndTimes(brk.start); track time) {
+              <option [value]="time">{{ time }}</option>
+              }
+            </select>
+            <button
+              (click)="removeBreak(config, $index)"
+              class="p-1 text-stone-300 hover:text-rose-500 transition-colors"
+            >
+              <mat-icon class="text-lg">cancel</mat-icon>
+            </button>
+          </div>
+          } @empty {
+          <p class="text-sm text-stone-400 italic">
+            Nenhum intervalo configurado.
+          </p>
+          }
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+  <!-- Confirmation Modal -->
+  <app-schedule-confirm-modal
+    [isOpen]="isConfirmModalOpen()"
+    [conflicts]="conflictingAppointments()"
+    (closed)="closeConfirmModal()"
+    (confirmed)="confirmSaveAndCancel()">
+  </app-schedule-confirm-modal>
+</div>

@@ -1,0 +1,106 @@
+<div class="max-w-6xl mx-auto">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
+    <div>
+      <h2 class="text-3xl font-serif italic text-stone-800">Agendamentos</h2>
+      <p class="text-stone-500">Acompanhe e gerencie os horários marcados.</p>
+    </div>
+    
+    <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+      <button (click)="openBookingModal()" class="flex items-center gap-2 bg-stone-800 text-white px-6 py-3 rounded-full hover:bg-stone-700 transition-all shadow-lg shrink-0">
+        <mat-icon>add_task</mat-icon>
+        <span class="hidden sm:inline">Novo Agendamento</span>
+      </button>
+    </div>
+  </header>
+    
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 w-full sm:w-auto">
+    @if (viewMode() === 'list') {
+      <app-search-input (searchTerm)="onSearch($event)" placeholder="Buscar cliente, serviço ou status..."></app-search-input>
+    } @else {
+      <div></div>
+    }
+    
+    <div class="bg-stone-100 p-1 rounded-full flex items-center">
+      <button (click)="viewMode.set('list')" 
+              [class.bg-white]="viewMode() === 'list'"
+              [class.shadow-sm]="viewMode() === 'list'"
+              [class.text-stone-800]="viewMode() === 'list'"
+              [class.text-stone-500]="viewMode() !== 'list'"
+              class="px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2">
+        <mat-icon class="text-sm">list</mat-icon>
+        Lista
+      </button>
+      <button (click)="viewMode.set('calendar')" 
+              [class.bg-white]="viewMode() === 'calendar'"
+              [class.shadow-sm]="viewMode() === 'calendar'"
+              [class.text-stone-800]="viewMode() === 'calendar'"
+              [class.text-stone-500]="viewMode() !== 'calendar'"
+              class="px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2">
+        <mat-icon class="text-sm">calendar_month</mat-icon>
+        Calendário
+      </button>
+    </div>
+  </div>
+
+  @if (viewMode() === 'list') {
+    <div class="flex flex-col bg-white rounded-3xl border border-stone-100 overflow-hidden shadow-sm">
+      <app-appointment-list 
+        [appointments]="paginatedData().items"
+        [clients]="clients()"
+        [services]="services()"
+        (editAppointment)="openEditModal($event)"
+        (cancelAppointment)="confirmCancel($event)"
+        (statusChange)="updateStatus($event.appointment, $event.status)">
+      </app-appointment-list>
+      
+      @if (paginatedData().totalItems > 0) {
+        <app-pagination 
+          [currentPage]="paginatedData().currentPage"
+          [totalPages]="paginatedData().totalPages"
+          [totalItems]="paginatedData().totalItems"
+          [pageSize]="paginatedData().pageSize"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)">
+        </app-pagination>
+      }
+    </div>
+  } @else {
+    <app-appointment-calendar
+      [appointments]="appointments()"
+      [clients]="clients()"
+      [services]="services()"
+      [currentDate]="currentDate()"
+      (dateChange)="currentDate.set($event)"
+      (editAppointment)="openEditModal($event)"
+      (cancelAppointment)="confirmCancel($event)"
+      (statusChange)="updateStatus($event.appointment, $event.status)"
+      (bookAt)="openBookingModalAt($event)">
+    </app-appointment-calendar>
+  }
+
+  <!-- Booking Modal -->
+  <app-appointment-booking-modal
+    [isOpen]="isModalOpen()"
+    [editAppointmentId]="editingAppointmentId()"
+    [prefillDate]="prefillDate()"
+    [prefillTime]="prefillTime()"
+    (closed)="closeModal()"
+    (finished)="onBookingFinished()">
+  </app-appointment-booking-modal>
+
+  <!-- Cancel Modal -->
+  <app-appointment-cancel-modal
+    [appointment]="cancelingAppointment()"
+    [clientName]="getClientName(cancelingAppointment()?.clientId)"
+    (closed)="abortCancel()"
+    (confirmed)="executeCancel()">
+  </app-appointment-cancel-modal>
+
+  <!-- Complete Modal -->
+  <app-appointment-complete-modal
+    [appointment]="completingAppointment()"
+    [clientName]="getClientName(completingAppointment()?.clientId)"
+    (closed)="abortComplete()"
+    (confirmed)="executeComplete()">
+  </app-appointment-complete-modal>
+</div>

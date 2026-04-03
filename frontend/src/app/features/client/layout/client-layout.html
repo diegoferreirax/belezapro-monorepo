@@ -1,0 +1,17 @@
+<div class="min-h-screen flex flex-col">
+  <nav class="bg-stone-800 text-white p-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-serif italic">Área do Cliente</h1>
+      <button
+        (click)="logout()"
+        class="flex items-center gap-2 hover:text-stone-300 transition-colors"
+      >
+        <mat-icon>logout</mat-icon>
+        <span>Sair</span>
+      </button>
+    </div>
+  </nav>
+  <main class="flex-grow p-4">
+    <router-outlet></router-outlet>
+  </main>
+</div>

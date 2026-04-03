@@ -1,0 +1,73 @@
+<div
+  class="h-screen w-full bg-stone-50 flex flex-col md:flex-row overflow-hidden"
+>
+  <!-- Sidebar -->
+  <aside
+    class="w-full md:w-64 shrink-0 bg-white border-r border-stone-200 flex flex-col overflow-y-auto md:overflow-visible"
+  >
+    <div class="p-6 border-b border-stone-100 shrink-0">
+      <h1 class="text-xl font-serif italic text-stone-800">BelezaPro</h1>
+      <p class="text-xs text-stone-400 uppercase tracking-widest mt-1">
+        Painel Administrativo
+      </p>
+    </div>
+
+    <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+      <a
+        routerLink="appointments"
+        routerLinkActive="bg-stone-100 text-stone-900"
+        class="flex items-center gap-3 p-3 rounded-xl text-stone-600 hover:bg-stone-50 transition-colors"
+      >
+        <mat-icon>calendar_today</mat-icon>
+        <span>Agendamentos</span>
+      </a>
+      <a
+        routerLink="services"
+        routerLinkActive="bg-stone-100 text-stone-900"
+        class="flex items-center gap-3 p-3 rounded-xl text-stone-600 hover:bg-stone-50 transition-colors"
+      >
+        <mat-icon>content_cut</mat-icon>
+        <span>Serviços</span>
+      </a>
+      <a
+        routerLink="clients"
+        routerLinkActive="bg-stone-100 text-stone-900"
+        class="flex items-center gap-3 p-3 rounded-xl text-stone-600 hover:bg-stone-50 transition-colors"
+      >
+        <mat-icon>people</mat-icon>
+        <span>Clientes</span>
+      </a>
+      <a
+        routerLink="schedule"
+        routerLinkActive="bg-stone-100 text-stone-900"
+        class="flex items-center gap-3 p-3 rounded-xl text-stone-600 hover:bg-stone-50 transition-colors"
+      >
+        <mat-icon>settings_suggest</mat-icon>
+        <span>Configurar Horários</span>
+      </a>
+      <a
+        routerLink="expenses"
+        routerLinkActive="bg-stone-100 text-stone-900"
+        class="flex items-center gap-3 p-3 rounded-xl text-stone-600 hover:bg-stone-50 transition-colors"
+      >
+        <mat-icon>payments</mat-icon>
+        <span>Financeiro</span>
+      </a>
+    </nav>
+
+    <div class="p-4 border-t border-stone-100 shrink-0">
+      <button
+        (click)="logout()"
+        class="w-full flex items-center gap-3 p-3 rounded-xl text-stone-400 hover:text-red-600 transition-colors text-sm"
+      >
+        <mat-icon>logout</mat-icon>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+    <router-outlet></router-outlet>
+  </main>
+</div>

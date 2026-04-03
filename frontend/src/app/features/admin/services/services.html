@@ -1,0 +1,101 @@
+<div class="max-w-4xl mx-auto">
+  <header class="flex justify-between items-end mb-8">
+    <div>
+      <h2 class="text-3xl font-serif italic text-stone-800">Serviços</h2>
+      <p class="text-stone-500">
+        Gerencie os procedimentos oferecidos no salão.
+      </p>
+    </div>
+    <button
+      (click)="openModal()"
+      class="flex items-center gap-2 bg-stone-800 text-white px-6 py-3 rounded-full hover:bg-stone-700 transition-all shadow-lg hover:shadow-stone-200"
+    >
+      <mat-icon>add</mat-icon>
+      <span>Novo Serviço</span>
+    </button>
+  </header>
+
+  <div class="grid gap-4">
+    @for (service of services(); track service.id) {
+    <div
+      class="bg-white p-6 rounded-2xl border border-stone-100 flex justify-between items-center hover:shadow-md transition-shadow group"
+    >
+      <div class="flex items-center gap-4">
+        <div
+          [class]="service.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-stone-100 text-stone-400'"
+          class="w-12 h-12 rounded-full flex items-center justify-center"
+        >
+          <mat-icon
+            >{{ service.isActive ? 'check_circle' : 'pause_circle' }}</mat-icon
+          >
+        </div>
+        <div>
+          <h3 class="font-medium text-stone-800">{{ service.name }}</h3>
+          <div class="flex gap-3 text-sm text-stone-500 mt-1">
+            <span class="flex items-center gap-1">
+              <mat-icon class="text-xs scale-75">payments</mat-icon>
+              R$ {{ service.price }}
+            </span>
+            @if (service.durationMinutes > 0) {
+            <span class="flex items-center gap-1">
+              <mat-icon class="text-xs scale-75">schedule</mat-icon>
+              {{ service.durationMinutes | durationFormat }}
+            </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <button
+          (click)="toggleStatus(service)"
+          [title]="service.isActive ? 'Desativar' : 'Ativar'"
+          class="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-50 rounded-lg"
+        >
+          <mat-icon
+            >{{ service.isActive ? 'visibility_off' : 'visibility' }}</mat-icon
+          >
+        </button>
+        <button
+          (click)="openModal(service)"
+          class="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-50 rounded-lg"
+        >
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button
+          (click)="openDeleteModal(service)"
+          class="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Modal -->
+  <!-- Service Modal -->
+  <app-service-modal
+    [isOpen]="isModalOpen()"
+    [service]="editingService()"
+    (closed)="closeModal()"
+    (saved)="onServiceSaved($event)"
+  ></app-service-modal>
+
+  <!-- Delete Confirmation Modal -->
+  <app-confirm-modal
+    [isOpen]="isDeleteModalOpen()"
+    title="Excluir Serviço"
+    subtitle="Ação irreversível."
+    icon="delete_outline"
+    [message]="'Você está prestes a excluir o serviço <strong>' + (serviceToDelete()?.name || '') + '</strong>.'"
+    warningMessage="Tem certeza que deseja excluir? Esta ação não pode ser desfeita e o serviço deixará de estar disponível para agendamentos."
+    confirmText="Sim, excluir"
+    cancelText="Não, manter serviço"
+    confirmColor="rose"
+    (closed)="closeDeleteModal()"
+    (confirmed)="confirmDelete()"
+  ></app-confirm-modal>
+</div>
