@@ -19,8 +19,21 @@ export class ScheduleCalculatorService {
     }
 
     // Get config for this exact date (handles overrides and defaults)
-    const config = this.salonService.getScheduleForDate(date);
-    
+    // const config = this.salonService.getScheduleForDate(date);
+    const config = {
+      "id": "1",
+      "dayOfWeek": 1,
+      "startTime": "08:00",
+      "endTime": "18:00",
+      "isClosed": false,
+      "breaks": [
+        {
+          "start": "12:00",
+          "end": "13:00"
+        }
+      ]
+    };
+
     if (!config || config.isClosed) {
       return [];
     }
@@ -32,7 +45,7 @@ export class ScheduleCalculatorService {
 
     while (current + duration <= end) {
       const timeStr = this.minutesToTime(current);
-      
+
       // Check if it overlaps with breaks
       const hasOverlapWithBreak = config.breaks.some((b: { start: string, end: string }) => {
         const bStart = this.timeToMinutes(b.start);
@@ -41,8 +54,8 @@ export class ScheduleCalculatorService {
       });
 
       // Check if it overlaps with existing appointments
-      const existingApps = appointments.filter(a => 
-        a.date === date && 
+      const existingApps = appointments.filter(a =>
+        a.date === date &&
         a.status !== AppointmentStatus.CANCELLED &&
         a.id !== excludeAppointmentId
       );

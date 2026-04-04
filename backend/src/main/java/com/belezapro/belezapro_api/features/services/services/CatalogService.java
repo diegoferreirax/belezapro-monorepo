@@ -4,6 +4,7 @@ import com.belezapro.belezapro_api.features.services.models.ServiceItem;
 import com.belezapro.belezapro_api.features.services.repositories.ServiceItemRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -21,6 +22,7 @@ public class CatalogService {
 
     public ServiceItem create(String adminId, ServiceItem item) {
         item.setAdminId(adminId);
+        item.setCreatedAt(Instant.now());
         return repository.save(item);
     }
 

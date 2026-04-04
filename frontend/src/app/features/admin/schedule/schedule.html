@@ -49,7 +49,7 @@
   </div>
 
   <div class="space-y-6">
-    @for (config of dayConfigs(); track config.dayOfWeek) {
+    @for (config of dayConfigs(); track (mode() === 'specific' ? config.date : config.dayOfWeek)) {
     <div class="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm">
       <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6"

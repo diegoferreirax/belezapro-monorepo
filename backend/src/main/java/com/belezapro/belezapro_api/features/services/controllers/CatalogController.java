@@ -20,7 +20,6 @@ public class CatalogController {
         this.catalogService = catalogService;
     }
 
-    // Extrai the forma segura a identidade criptografada na sessao Request The Interceptor JWT
     private String getAdminId(HttpServletRequest request) {
         return (String) request.getAttribute("authenticatedUserId");
     }

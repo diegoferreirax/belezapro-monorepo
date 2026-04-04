@@ -1,6 +1,7 @@
-import { Component, inject, effect, signal, computed } from '@angular/core';
+import { Component, inject, effect, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SalonService } from '../../../core/services/salon.service';
+import { ScheduleService } from '../../../core/services/schedule.service';
 import { DayScheduleConfig } from '../../../core/models/salon.models';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
@@ -12,12 +13,13 @@ import { ScheduleConfirmModalComponent } from './confirm-modal/confirm-modal';
   imports: [CommonModule, MatIconModule, FormsModule, ScheduleConfirmModalComponent],
   templateUrl: './schedule.html'
 })
-export class ScheduleComponent {
+export class ScheduleComponent implements OnInit {
   private salonService = inject(SalonService);
+  private scheduleService = inject(ScheduleService);
 
   mode = signal<'default' | 'specific'>('specific');
   currentWeekStart = signal<Date>(this.getStartOfWeek(new Date()));
-  
+
   dayConfigs = signal<DayScheduleConfig[]>([]);
   weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
   timeOptions: string[] = [];
@@ -26,7 +28,6 @@ export class ScheduleComponent {
     const start = this.currentWeekStart();
     const end = new Date(start);
     end.setDate(end.getDate() + 6);
-    
     const startStr = start.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
     const endStr = end.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
     return `${startStr} - ${endStr}`;
@@ -35,15 +36,13 @@ export class ScheduleComponent {
   canGoToPrevWeek = computed(() => {
     const currentViewStart = new Date(this.currentWeekStart());
     const actualCurrentWeekStart = this.getStartOfWeek(new Date());
-    
     currentViewStart.setHours(0, 0, 0, 0);
     actualCurrentWeekStart.setHours(0, 0, 0, 0);
-    
     return currentViewStart > actualCurrentWeekStart;
   });
 
   isConfirmModalOpen = signal(false);
-  conflictingAppointments = signal<{date: string, count: number}[]>([]);
+  conflictingAppointments = signal<{ date: string, count: number }[]>([]);
   private pendingConfigs: DayScheduleConfig[] = [];
 
   constructor() {
@@ -53,14 +52,19 @@ export class ScheduleComponent {
     });
   }
 
+  ngOnInit() {
+    this.scheduleService.loadConfigs();
+    this.scheduleService.loadOverrides();
+  }
+
   private generateTimeOptions() {
-    const options = [];
+    const options: string[] = [];
     for (let h = 0; h < 24; h++) {
       const hourStr = h.toString().padStart(2, '0');
       options.push(`${hourStr}:00`);
       options.push(`${hourStr}:30`);
     }
-    options.push('23:59'); // Adiciona o fim do dia para permitir turnos até meia-noite
+    options.push('23:59');
     this.timeOptions = options;
   }
 
@@ -77,7 +81,7 @@ export class ScheduleComponent {
     }
   }
 
-  onBreakStartTimeChange(brk: {start: string, end: string}) {
+  onBreakStartTimeChange(brk: { start: string, end: string }) {
     const validEndTimes = this.getAvailableEndTimes(brk.start);
     if (brk.end && !validEndTimes.includes(brk.end)) {
       brk.end = validEndTimes.length > 0 ? validEndTimes[0] : brk.start;
@@ -115,30 +119,30 @@ export class ScheduleComponent {
 
   loadConfigs(mode: 'default' | 'specific', weekStart: Date) {
     if (mode === 'default') {
-      const defaults = this.salonService.scheduleConfigs();
-      this.dayConfigs.set(JSON.parse(JSON.stringify(defaults)));
+      this.dayConfigs.set(JSON.parse(JSON.stringify(this.scheduleService.configs())));
     } else {
       const configs: DayScheduleConfig[] = [];
       for (let i = 0; i < 7; i++) {
         const currentDate = new Date(weekStart);
         currentDate.setDate(currentDate.getDate() + i);
-        const dateStr = currentDate.toLocaleDateString('en-CA'); // YYYY-MM-DD
-        
-        const configForDate = this.salonService.getScheduleForDate(dateStr);
+        const dateStr = currentDate.toLocaleDateString('en-CA');
+        const configForDate = this.scheduleService.getConfigForDate(dateStr);
         if (configForDate) {
-          configs.push(JSON.parse(JSON.stringify(configForDate)));
+          const dayOfWeek = currentDate.getDay();
+          configs.push(JSON.parse(JSON.stringify({ ...configForDate, date: dateStr, dayOfWeek })));
         }
       }
       this.dayConfigs.set(configs);
     }
   }
 
-  async saveConfigs() {
-    const conflicts: {date: string, count: number}[] = [];
-    
+  saveConfigs() {
+    const conflicts: { date: string, count: number }[] = [];
+
     if (this.mode() === 'specific') {
       this.dayConfigs().forEach(config => {
         if (config.isClosed && config.date) {
+          // TODO: migrar para API quando Appointments for migrado
           const activeApps = this.salonService.getActiveAppointmentsByDate(config.date);
           if (activeApps.length > 0) {
             conflicts.push({ date: config.date, count: activeApps.length });
@@ -158,33 +162,52 @@ export class ScheduleComponent {
   }
 
   confirmSaveAndCancel() {
-    const conflicts = this.conflictingAppointments();
-    conflicts.forEach(c => {
+    // TODO: migrar para API quando Appointments for migrado
+    this.conflictingAppointments().forEach(c => {
       this.salonService.cancelAppointmentsByDate(c.date);
     });
-
     this.executeSave(this.pendingConfigs);
     this.closeConfirmModal();
   }
 
   private executeSave(configs: DayScheduleConfig[]) {
     if (this.mode() === 'default') {
-      const configsToSave = configs.map(c => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { date, ...rest } = c;
-        return rest;
+      this.scheduleService.saveConfigs(configs).subscribe({
+        next: () => alert('Horários padrão salvos com sucesso!'),
+        error: () => alert('Erro ao salvar horários.')
       });
-      this.salonService.saveScheduleConfigs(configsToSave);
     } else {
+      const defaultConfigs = this.scheduleService.configs();
+      const existingOverrides = this.scheduleService.overrides();
       const overrides: Record<string, DayScheduleConfig> = {};
+
       configs.forEach(config => {
-        if (config.date) {
+        if (!config.date) return;
+
+        const defaultForDay = defaultConfigs.find(d => d.dayOfWeek === config.dayOfWeek);
+        const differFromDefault = !defaultForDay
+          || config.isClosed !== defaultForDay.isClosed
+          || config.startTime !== defaultForDay.startTime
+          || config.endTime !== defaultForDay.endTime
+          || JSON.stringify(config.breaks) !== JSON.stringify(defaultForDay.breaks);
+
+        const hasExistingOverride = !!existingOverrides[config.date];
+
+        if (differFromDefault || hasExistingOverride) {
           overrides[config.date] = config;
         }
       });
-      this.salonService.saveScheduleOverrides(overrides);
+
+      if (Object.keys(overrides).length === 0) {
+        alert('Nenhuma alteração detectada em relação ao horário padrão.');
+        return;
+      }
+
+      this.scheduleService.saveOverrides(overrides).subscribe({
+        next: () => alert('Exceções de horário salvas com sucesso!'),
+        error: () => alert('Erro ao salvar exceções.')
+      });
     }
-    alert('Configurações salvas com sucesso!');
   }
 
   closeConfirmModal() {
@@ -203,8 +226,7 @@ export class ScheduleComponent {
 
   formatDate(dateStr?: string): string {
     if (!dateStr) return '';
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [y, m, d] = dateStr.split('-');
+    const [, m, d] = dateStr.split('-');
     return `${d}/${m}`;
   }
 }
