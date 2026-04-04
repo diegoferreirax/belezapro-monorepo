@@ -12,6 +12,7 @@ export interface Client {
   email: string;
   phone: string;
   isBlocked?: boolean;
+  linkedAt?: string;
 }
 
 export enum AppointmentStatus {

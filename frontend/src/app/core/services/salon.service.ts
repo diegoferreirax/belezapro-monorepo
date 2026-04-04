@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { LocalStorageRepository } from '../repositories/local-storage.repository';
-import { Service, Client, Appointment, DayScheduleConfig, AppointmentStatus } from '../models/salon.models';
+import { Service, Appointment, DayScheduleConfig, AppointmentStatus } from '../models/salon.models';
 import { PageRequest, PageResponse } from '../models/pagination.models';
 import { paginate } from '../utils/pagination.utils';
 import { ApiService } from './api.service';
@@ -12,14 +12,12 @@ export class SalonService {
   private repository = inject(LocalStorageRepository);
   private apiService = inject(ApiService);
 
-  private readonly CLIENTS_KEY = 'salon_clients';
   private readonly APPOINTMENTS_KEY = 'salon_appointments';
   private readonly SCHEDULE_CONFIG_KEY = 'salon_schedule_config';
   private readonly SCHEDULE_OVERRIDES_KEY = 'salon_schedule_overrides';
 
   // Signals for reactivity
   services = signal<Service[]>([]);
-  clients = signal<Client[]>([]);
   appointments = signal<Appointment[]>([]);
   scheduleConfigs = signal<DayScheduleConfig[]>([]);
   scheduleOverrides = signal<Record<string, DayScheduleConfig>>({});
@@ -29,7 +27,6 @@ export class SalonService {
   }
 
   private refreshSignals() {
-    this.clients.set(this.repository.get<Client>(this.CLIENTS_KEY));
     this.appointments.set(this.repository.get<Appointment>(this.APPOINTMENTS_KEY));
     this.scheduleConfigs.set(this.repository.get<DayScheduleConfig>(this.SCHEDULE_CONFIG_KEY));
     this.scheduleOverrides.set(this.repository.getRaw<Record<string, DayScheduleConfig>>(this.SCHEDULE_OVERRIDES_KEY) || {});
@@ -64,52 +61,6 @@ export class SalonService {
     });
   }
 
-  // Clients
-  getClients() { return this.clients(); }
-  
-  getClientsPaginated(request: PageRequest): PageResponse<Client> {
-    return paginate(this.clients(), request, (client, term) => 
-      client.name.toLowerCase().includes(term) || 
-      client.email.toLowerCase().includes(term) || 
-      client.phone.includes(term)
-    );
-  }
-
-  getClientByEmail(email: string) { return this.clients().find(c => c.email === email); }
-  addClient(client: Client) {
-    this.repository.add(this.CLIENTS_KEY, client);
-    this.refreshSignals();
-  }
-  updateClient(client: Client) {
-    this.repository.update(this.CLIENTS_KEY, client);
-    this.refreshSignals();
-  }
-  blockClient(id: string) {
-    const client = this.clients().find(c => c.id === id);
-    if (client) {
-      this.updateClient({ ...client, isBlocked: true });
-
-      const now = new Date();
-      const appointments = this.appointments().filter(a => 
-        a.clientId === id && 
-        (a.status === AppointmentStatus.PENDING || a.status === AppointmentStatus.CONFIRMED)
-      );
-      
-      appointments.forEach(app => {
-        const appDateTime = new Date(`${app.date}T${app.startTime}:00`);
-        if (appDateTime > now) {
-          this.updateAppointment({ ...app, status: AppointmentStatus.CANCELLED });
-        }
-      });
-    }
-  }
-  unblockClient(id: string) {
-    const client = this.clients().find(c => c.id === id);
-    if (client) {
-      this.updateClient({ ...client, isBlocked: false });
-    }
-  }
-
   // Appointments
   getAppointments() { return this.appointments(); }
 
@@ -137,14 +88,10 @@ export class SalonService {
     }
     
     return paginate(apps, request, (app, term) => {
-      const client = this.clients().find(c => c.id === app.clientId);
-      const clientName = client ? client.name.toLowerCase() : '';
-      
-      const services = this.services().filter(s => app.serviceIds.includes(s.id));
-      const serviceNames = services.map(s => s.name.toLowerCase()).join(' ');
+      const services = this.services().filter((s: any) => app.serviceIds.includes(s.id));
+      const serviceNames = services.map((s: any) => s.name.toLowerCase()).join(' ');
 
-      return clientName.includes(term) || 
-             serviceNames.includes(term) || 
+      return serviceNames.includes(term) || 
              app.status.toLowerCase().includes(term);
     });
   }

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Client } from '../../../../core/models/salon.models';
-import { SalonService } from '../../../../core/services/salon.service';
+import { ClientService } from '../../../../core/services/client.service';
 import { EmailMaskDirective } from '../../../../shared/directives/email-mask.directive';
 
 @Component({
@@ -19,7 +19,7 @@ export class ClientModalComponent implements OnChanges {
   @Output() saved = new EventEmitter<void>();
 
   private fb = inject(FormBuilder);
-  private salonService = inject(SalonService);
+  private clientService = inject(ClientService);
 
   clientForm = this.fb.group({
     name: ['', [Validators.required]],
@@ -31,8 +31,10 @@ export class ClientModalComponent implements OnChanges {
     if (changes['isOpen']?.currentValue === true) {
       if (this.client) {
         this.clientForm.patchValue(this.client);
+        this.clientForm.get('email')?.disable();
       } else {
         this.clientForm.reset();
+        this.clientForm.get('email')?.enable();
       }
     }
   }
@@ -53,28 +55,34 @@ export class ClientModalComponent implements OnChanges {
     return '';
   }
 
-  async saveClient() {
+  saveClient() {
     if (this.clientForm.invalid) return;
 
     const formValue = this.clientForm.getRawValue();
-    const clientData: Client = {
-      id: this.client?.id || crypto.randomUUID(),
-      name: formValue.name!,
-      email: formValue.email!,
-      phone: formValue.phone!,
-      isBlocked: this.client?.isBlocked || false
-    };
 
-    try {
-      if (this.client) {
-        await this.salonService.updateClient(clientData);
-      } else {
-        await this.salonService.addClient(clientData);
-      }
-      this.saved.emit();
-      this.closeModal();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'Erro ao salvar cliente');
+    if (this.client) {
+      this.clientService.updateClient(this.client.id, {
+        name: formValue.name!,
+        phone: formValue.phone!
+      }).subscribe({
+        next: () => {
+          this.saved.emit();
+          this.closeModal();
+        },
+        error: (e: any) => alert(e?.error?.message || 'Erro ao atualizar cliente')
+      });
+    } else {
+      this.clientService.createClient({
+        name: formValue.name!,
+        email: formValue.email!,
+        phone: formValue.phone!
+      }).subscribe({
+        next: () => {
+          this.saved.emit();
+          this.closeModal();
+        },
+        error: (e: any) => alert(e?.error?.message || 'Erro ao criar cliente')
+      });
     }
   }
 }
