@@ -14,7 +14,6 @@ import { DurationFormatPipe } from '../../../../shared/pipes/duration-format.pip
 export class AppointmentListComponent {
   appointments = input.required<Appointment[]>();
   clients = input.required<Client[]>();
-  services = input.required<Service[]>();
 
   editAppointment = output<Appointment>();
   cancelAppointment = output<string>();
@@ -22,14 +21,12 @@ export class AppointmentListComponent {
 
   AppointmentStatus = AppointmentStatus;
 
-  getClientName(clientId: string): string {
-    return this.clients().find(c => c.id === clientId)?.name || 'Cliente desconhecido';
+  getClientName(appointment: Appointment): string {
+    return appointment.clientName || 'Cliente desconhecido';
   }
 
-  getServiceNames(serviceIds: string[]): string {
-    return serviceIds
-      .map(id => this.services().find(s => s.id === id)?.name)
-      .filter(Boolean)
-      .join(', ');
+  getServiceNames(appointment: Appointment): string {
+    if (!appointment.parsedServiceNames || appointment.parsedServiceNames.length === 0) return '';
+    return appointment.parsedServiceNames.join(', ');
   }
 }

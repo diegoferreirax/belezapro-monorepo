@@ -1,11 +1,12 @@
 import { Component, inject, effect, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SalonService } from '../../../core/services/salon.service';
 import { ScheduleService } from '../../../core/services/schedule.service';
+import { AppointmentService } from '../../../core/services/appointment.service';
 import { DayScheduleConfig } from '../../../core/models/salon.models';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { ScheduleConfirmModalComponent } from './confirm-modal/confirm-modal';
+import { forkJoin, map } from 'rxjs';
 
 @Component({
   selector: 'app-schedule',
@@ -14,8 +15,8 @@ import { ScheduleConfirmModalComponent } from './confirm-modal/confirm-modal';
   templateUrl: './schedule.html'
 })
 export class ScheduleComponent implements OnInit {
-  private salonService = inject(SalonService);
   private scheduleService = inject(ScheduleService);
+  private appointmentService = inject(AppointmentService);
 
   mode = signal<'default' | 'specific'>('specific');
   currentWeekStart = signal<Date>(this.getStartOfWeek(new Date()));
@@ -137,24 +138,33 @@ export class ScheduleComponent implements OnInit {
   }
 
   saveConfigs() {
-    const conflicts: { date: string, count: number }[] = [];
-
     if (this.mode() === 'specific') {
-      this.dayConfigs().forEach(config => {
-        if (config.isClosed && config.date) {
-          // TODO: migrar para API quando Appointments for migrado
-          const activeApps = this.salonService.getActiveAppointmentsByDate(config.date);
-          if (activeApps.length > 0) {
-            conflicts.push({ date: config.date, count: activeApps.length });
-          }
+      const closedDates = this.dayConfigs()
+        .filter(c => c.isClosed && c.date)
+        .map(c => c.date!);
+
+      if (closedDates.length === 0) {
+        this.executeSave(this.dayConfigs());
+        return;
+      }
+
+      // Consulta de forma asíncrona a existência de conflitos para cada data fechada
+      const requests = closedDates.map(date =>
+        this.appointmentService.getActiveByDate(date).pipe(
+          map(apps => ({ date, count: apps.length }))
+        )
+      );
+
+      forkJoin(requests).subscribe(results => {
+        const conflicts = results.filter(r => r.count > 0);
+        if (conflicts.length > 0) {
+          this.conflictingAppointments.set(conflicts);
+          this.pendingConfigs = [...this.dayConfigs()];
+          this.isConfirmModalOpen.set(true);
+        } else {
+          this.executeSave(this.dayConfigs());
         }
       });
-    }
-
-    if (conflicts.length > 0) {
-      this.conflictingAppointments.set(conflicts);
-      this.pendingConfigs = [...this.dayConfigs()];
-      this.isConfirmModalOpen.set(true);
       return;
     }
 
@@ -162,12 +172,18 @@ export class ScheduleComponent implements OnInit {
   }
 
   confirmSaveAndCancel() {
-    // TODO: migrar para API quando Appointments for migrado
-    this.conflictingAppointments().forEach(c => {
-      this.salonService.cancelAppointmentsByDate(c.date);
+    const conflicts = this.conflictingAppointments();
+    if (conflicts.length === 0) return;
+
+    const requests = conflicts.map(c => this.appointmentService.cancelAppointmentsByDate(c.date));
+    
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.executeSave(this.pendingConfigs);
+        this.closeConfirmModal();
+      },
+      error: () => alert('Erro ao cancelar agendamentos conflitantes no servidor.')
     });
-    this.executeSave(this.pendingConfigs);
-    this.closeConfirmModal();
   }
 
   private executeSave(configs: DayScheduleConfig[]) {

@@ -42,7 +42,7 @@
 
   @if (viewMode() === 'list') {
   <div class="flex flex-col bg-white rounded-3xl border border-stone-100 overflow-hidden shadow-sm">
-    <app-appointment-list [appointments]="paginatedData().items" [clients]="[]" [services]="services()"
+    <app-appointment-list [appointments]="paginatedData().items" [clients]="[]"
       (editAppointment)="openEditModal($event)" (cancelAppointment)="confirmCancel($event)"
       (statusChange)="updateStatus($event.appointment, $event.status)">
     </app-appointment-list>
@@ -55,7 +55,7 @@
     }
   </div>
   } @else {
-  <app-appointment-calendar [appointments]="appointments()" [clients]="[]" [services]="services()"
+  <app-appointment-calendar [appointments]="appointments()" [clients]="[]"
     [currentDate]="currentDate()" (dateChange)="currentDate.set($event)" (editAppointment)="openEditModal($event)"
     (cancelAppointment)="confirmCancel($event)" (statusChange)="updateStatus($event.appointment, $event.status)"
     (bookAt)="openBookingModalAt($event)">
@@ -70,13 +70,13 @@
 
   <!-- Cancel Modal -->
   <app-appointment-cancel-modal [appointment]="cancelingAppointment()"
-    [clientName]="getClientName(cancelingAppointment()?.clientId)" (closed)="abortCancel()"
+    [clientName]="cancelingAppointment() ? getClientName(cancelingAppointment()!) : ''" (closed)="abortCancel()"
     (confirmed)="executeCancel()">
   </app-appointment-cancel-modal>
 
   <!-- Complete Modal -->
   <app-appointment-complete-modal [appointment]="completingAppointment()"
-    [clientName]="getClientName(completingAppointment()?.clientId)" (closed)="abortComplete()"
+    [clientName]="completingAppointment() ? getClientName(completingAppointment()!) : ''" (closed)="abortComplete()"
     (confirmed)="executeComplete()">
   </app-appointment-complete-modal>
 </div>

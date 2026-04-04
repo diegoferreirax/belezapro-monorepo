@@ -85,8 +85,8 @@
                    (keydown.enter)="handleAppointmentClick(app, $event)">
                 
                 <div class="text-xs font-bold mb-0.5 truncate">{{ app.startTime }}</div>
-                <div class="text-sm font-medium leading-tight truncate">{{ getClientName(app.clientId) }}</div>
-                <div class="text-xs opacity-70 truncate mt-1">{{ getServiceNames(app.serviceIds) }}</div>
+                <div class="text-sm font-medium leading-tight truncate">{{ getClientName(app) }}</div>
+                <div class="text-xs opacity-70 truncate mt-1">{{ getServiceNames(app) }}</div>
                 
                 <!-- Hover Actions Overlay -->
                 @if (app.status === AppointmentStatus.PENDING || app.status === AppointmentStatus.CONFIRMED) {

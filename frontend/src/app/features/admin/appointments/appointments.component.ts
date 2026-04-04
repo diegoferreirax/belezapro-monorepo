@@ -1,8 +1,8 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SalonService } from '../../../core/services/salon.service';
+import { AppointmentService } from '../../../core/services/appointment.service';
 import { Appointment, AppointmentStatus } from '../../../core/models/salon.models';
-import { PageRequest } from '../../../core/models/pagination.models';
+import { PageRequest, PageResponse } from '../../../core/models/pagination.models';
 import { MatIconModule } from '@angular/material/icon';
 import { AppointmentBookingModalComponent } from './appointment-booking-modal/booking-modal';
 import { AppointmentCancelModalComponent } from './appointment-cancel-modal/cancel-modal';
@@ -16,20 +16,20 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   selector: 'app-appointments',
   standalone: true,
   imports: [
-    CommonModule, 
-    MatIconModule, 
-    AppointmentBookingModalComponent, 
+    CommonModule,
+    MatIconModule,
+    AppointmentBookingModalComponent,
     AppointmentCancelModalComponent,
     AppointmentCompleteModalComponent,
-    AppointmentListComponent, 
+    AppointmentListComponent,
     AppointmentCalendarComponent,
     SearchInputComponent,
     PaginationComponent
   ],
   templateUrl: './appointments.html'
 })
-export class AppointmentsComponent {
-  private salonService = inject(SalonService);
+export class AppointmentsComponent implements OnInit {
+  private appointmentService = inject(AppointmentService);
 
   pageRequest = signal<PageRequest>({
     page: 1,
@@ -39,19 +39,12 @@ export class AppointmentsComponent {
     sortDirection: 'desc'
   });
 
-  paginatedData = computed(() => {
-    return this.salonService.getAppointmentsPaginated(this.pageRequest());
-  });
+  paginatedData = signal<PageResponse<Appointment>>({ items: [], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 });
+  
+  // Para manter a reatividade da agenda caso se necessite da listagem do range, os components-filhos 
+  // agora devem requerer da API eles mesmos, ou então injetamos um store para agendamentos do calendario
+  appointments = computed(() => this.paginatedData().items);
 
-  appointments = computed(() => {
-    return [...this.salonService.appointments()].sort((a: Appointment, b: Appointment) => {
-      const dateA = new Date(`${a.date}T${a.startTime}`);
-      const dateB = new Date(`${b.date}T${b.startTime}`);
-      return dateB.getTime() - dateA.getTime();
-    });
-  });
-  services = this.salonService.services;
-  clients = this.salonService.clients;
   isModalOpen = signal(false);
   editingAppointmentId = signal<string | undefined>(undefined);
   cancelingAppointmentId = signal<string | undefined>(undefined);
@@ -59,15 +52,33 @@ export class AppointmentsComponent {
   completingAppointment = signal<Appointment | undefined>(undefined);
   prefillDate = signal<string | undefined>(undefined);
   prefillTime = signal<string | undefined>(undefined);
-  
+
   viewMode = signal<'list' | 'calendar'>('list');
   currentDate = signal(new Date());
 
   AppointmentStatus = AppointmentStatus;
 
-  getClientName(clientId: string | undefined): string {
-    if (!clientId) return 'Cliente desconhecido';
-    return this.clients().find(c => c.id === clientId)?.name || 'Cliente desconhecido';
+  constructor() {
+    effect(() => {
+      this.loadAppointments();
+    });
+  }
+
+  ngOnInit() {
+    // loadAppointments is triggered by effect on pageRequest changes
+  }
+
+  loadAppointments() {
+    const req = this.pageRequest();
+    this.appointmentService.getPaginatedList(req, undefined, req.searchTerm).subscribe({
+      next: (res) => this.paginatedData.set(res),
+      error: () => console.error('Erro ao listar agendamentos na tela.')
+    });
+  }
+
+  // Denormalization: Get ClientName is now directly in Appointment!
+  getClientName(appointment: Appointment): string {
+    return appointment.clientName || 'Cliente desconhecido';
   }
 
   async updateStatus(appointment: Appointment, status: AppointmentStatus) {
@@ -77,7 +88,7 @@ export class AppointmentsComponent {
       const [year, month, day] = appointment.date.split('-').map(Number);
       const [hour, minute] = appointment.startTime.split(':').map(Number);
       const appDate = new Date(year, month - 1, day, hour, minute);
-      
+
       if (appDate > now) {
         this.completingAppointment.set(appointment);
         return;
@@ -85,7 +96,10 @@ export class AppointmentsComponent {
     }
 
     const updated = { ...appointment, status };
-    await this.salonService.updateAppointment(updated);
+    this.appointmentService.update(appointment.id, updated).subscribe({
+      next: () => this.loadAppointments(),
+      error: () => alert('Acesso Negado ou Agendamento não encotrado.')
+    });
   }
 
   confirmCancel(id: string) {
@@ -111,7 +125,10 @@ export class AppointmentsComponent {
     const app = this.completingAppointment();
     if (app) {
       const updated = { ...app, status: AppointmentStatus.COMPLETED };
-      await this.salonService.updateAppointment(updated);
+      this.appointmentService.update(app.id, updated).subscribe({
+        next: () => this.loadAppointments(),
+        error: () => alert('Erro ao finalizar Agendamento.')
+      });
       this.completingAppointment.set(undefined);
     }
   }
@@ -149,6 +166,7 @@ export class AppointmentsComponent {
 
   onBookingFinished() {
     this.closeModal();
+    this.loadAppointments();
   }
 
   onSearch(term: string) {

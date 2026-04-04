@@ -25,7 +25,9 @@ export enum AppointmentStatus {
 export interface Appointment {
   id: string;
   clientId: string;
+  clientName?: string;
   serviceIds: string[];
+  parsedServiceNames?: string[];
   date: string; // ISO Date YYYY-MM-DD
   startTime: string; // HH:mm
   totalDurationMinutes: number;

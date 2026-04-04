@@ -1,12 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Appointment, AppointmentStatus } from '../models/salon.models';
-import { SalonService } from './salon.service';
+import { ScheduleService } from './schedule.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ScheduleCalculatorService {
-  private salonService = inject(SalonService);
+  private scheduleService = inject(ScheduleService);
 
   getAvailableTimes(
     date: string | undefined | null,
@@ -19,20 +19,7 @@ export class ScheduleCalculatorService {
     }
 
     // Get config for this exact date (handles overrides and defaults)
-    // const config = this.salonService.getScheduleForDate(date);
-    const config = {
-      "id": "1",
-      "dayOfWeek": 1,
-      "startTime": "08:00",
-      "endTime": "18:00",
-      "isClosed": false,
-      "breaks": [
-        {
-          "start": "12:00",
-          "end": "13:00"
-        }
-      ]
-    };
+    const config = this.scheduleService.getConfigForDate(date);
 
     if (!config || config.isClosed) {
       return [];

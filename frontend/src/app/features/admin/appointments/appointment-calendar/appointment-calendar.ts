@@ -2,7 +2,7 @@ import { Component, input, output, computed, inject, ChangeDetectionStrategy, In
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { Appointment, AppointmentStatus, Client, Service, DayScheduleConfig } from '../../../../core/models/salon.models';
-import { SalonService } from '../../../../core/services/salon.service';
+import { ScheduleService } from '../../../../core/services/schedule.service';
 
 @Component({
   selector: 'app-appointment-calendar',
@@ -12,7 +12,7 @@ import { SalonService } from '../../../../core/services/salon.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppointmentCalendarComponent {
-  private salonService = inject(SalonService);
+  private scheduleService = inject(ScheduleService);
 
   appointments = signal<Appointment[]>([]);
   clients = signal<Client[]>([]);
@@ -46,7 +46,7 @@ export class AppointmentCalendarComponent {
     const days = this.calendarDays();
     const configs = days.map(d => {
       const dateStr = d.toLocaleDateString('en-CA');
-      return this.salonService.getScheduleForDate(dateStr);
+      return this.scheduleService.getConfigForDate(dateStr);
     }).filter(c => c && !c.isClosed) as DayScheduleConfig[];
 
     let minHour = 8;
@@ -103,15 +103,15 @@ export class AppointmentCalendarComponent {
 
   getAppointmentsForDay(date: Date): Appointment[] {
     const dateStr = date.toLocaleDateString('en-CA');
-    return this.appointments().filter(a => 
-      a.date === dateStr && 
+    return this.appointments().filter(a =>
+      a.date === dateStr &&
       a.status !== AppointmentStatus.CANCELLED
     );
   }
 
   getUnavailableBlocksForDay(date: Date) {
     const dateStr = date.toLocaleDateString('en-CA');
-    const config = this.salonService.getScheduleForDate(dateStr);
+    const config = this.scheduleService.getConfigForDate(dateStr);
     const { minHour, maxHour } = this.calendarBounds();
     const blocks: { top: number, height: number }[] = [];
     const totalHeight = (maxHour - minHour) * 90;
@@ -172,23 +172,21 @@ export class AppointmentCalendarComponent {
     return durationMinutes * 1.5;
   }
 
-  getClientName(clientId: string): string {
-    return this.clients().find(c => c.id === clientId)?.name || 'Cliente desconhecido';
+  getClientName(appointment: Appointment): string {
+    return appointment.clientName || 'Cliente desconhecido';
   }
 
-  getServiceNames(serviceIds: string[]): string {
-    return serviceIds
-      .map(id => this.services().find(s => s.id === id)?.name)
-      .filter(Boolean)
-      .join(', ');
+  getServiceNames(appointment: Appointment): string {
+    if (!appointment.parsedServiceNames || appointment.parsedServiceNames.length === 0) return '';
+    return appointment.parsedServiceNames.join(', ');
   }
 
   getAppointmentClasses(app: Appointment): string {
     const base = 'absolute left-1 right-1 rounded-xl p-2 overflow-hidden shadow-sm border z-20 transition-all hover:shadow-md hover:z-40 group';
-    const cursor = (app.status === AppointmentStatus.PENDING || app.status === AppointmentStatus.CONFIRMED) 
-      ? 'cursor-pointer' 
+    const cursor = (app.status === AppointmentStatus.PENDING || app.status === AppointmentStatus.CONFIRMED)
+      ? 'cursor-pointer'
       : 'cursor-default';
-    
+
     let statusClasses = '';
     switch (app.status) {
       case AppointmentStatus.PENDING:

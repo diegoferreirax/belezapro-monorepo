@@ -19,11 +19,11 @@
               <div class="text-sm text-stone-500">{{ app.startTime }}</div>
             </td>
             <td class="p-4">
-              <div class="text-stone-800">{{ getClientName(app.clientId) }}</div>
+              <div class="text-stone-800">{{ getClientName(app) }}</div>
             </td>
             <td class="p-4">
-              <div class="text-sm text-stone-600 max-w-xs truncate" [title]="getServiceNames(app.serviceIds)">
-                {{ getServiceNames(app.serviceIds) }}
+              <div class="text-sm text-stone-600 max-w-xs truncate" [title]="getServiceNames(app)">
+                {{ getServiceNames(app) }}
               </div>
             </td>
             <td class="p-4">
