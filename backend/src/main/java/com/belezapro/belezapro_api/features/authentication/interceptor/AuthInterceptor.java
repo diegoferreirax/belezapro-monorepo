@@ -60,6 +60,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         try {
             DecodedJWT jwt = verifier.verify(token);
             request.setAttribute("authenticatedUser", jwt.getSubject());
+            request.setAttribute("authenticatedUserId", jwt.getClaim("userId").asString());
 
             if (needsRoles) {
                 String[] tokenRoles = jwt.getClaim("roles").asArray(String.class);

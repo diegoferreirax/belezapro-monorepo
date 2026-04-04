@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SalonService } from '../../../core/services/salon.service';
 import { Service } from '../../../core/models/salon.models';
@@ -13,12 +13,16 @@ import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/
   imports: [CommonModule, MatIconModule, DurationFormatPipe, ServiceModalComponent, ConfirmModalComponent],
   templateUrl: './services.html'
 })
-export class ServicesComponent {
+export class ServicesComponent implements OnInit {
   private salonService = inject(SalonService);
 
   services = this.salonService.services;
   isModalOpen = signal(false);
   editingService = signal<Service | null>(null);
+
+  ngOnInit() {
+    this.salonService.loadServices();
+  }
 
   isDeleteModalOpen = signal(false);
   serviceToDelete = signal<Service | null>(null);

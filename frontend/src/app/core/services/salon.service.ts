@@ -3,14 +3,15 @@ import { LocalStorageRepository } from '../repositories/local-storage.repository
 import { Service, Client, Appointment, DayScheduleConfig, AppointmentStatus } from '../models/salon.models';
 import { PageRequest, PageResponse } from '../models/pagination.models';
 import { paginate } from '../utils/pagination.utils';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SalonService {
   private repository = inject(LocalStorageRepository);
+  private apiService = inject(ApiService);
 
-  private readonly SERVICES_KEY = 'salon_services';
   private readonly CLIENTS_KEY = 'salon_clients';
   private readonly APPOINTMENTS_KEY = 'salon_appointments';
   private readonly SCHEDULE_CONFIG_KEY = 'salon_schedule_config';
@@ -24,31 +25,43 @@ export class SalonService {
   scheduleOverrides = signal<Record<string, DayScheduleConfig>>({});
 
   constructor() {
-    this.seedInitialData();
     this.refreshSignals();
   }
 
   private refreshSignals() {
-    this.services.set(this.repository.get<Service>(this.SERVICES_KEY));
     this.clients.set(this.repository.get<Client>(this.CLIENTS_KEY));
     this.appointments.set(this.repository.get<Appointment>(this.APPOINTMENTS_KEY));
     this.scheduleConfigs.set(this.repository.get<DayScheduleConfig>(this.SCHEDULE_CONFIG_KEY));
     this.scheduleOverrides.set(this.repository.getRaw<Record<string, DayScheduleConfig>>(this.SCHEDULE_OVERRIDES_KEY) || {});
   }
 
-  // Services
+  // Services Integrados The Verdade ao Java JWT API backend
   getServices() { return this.services(); }
+
+  loadServices() {
+    // Carrega o catalogo atrelado the forma segura the nuvem The back End
+    this.apiService.get<Service[]>('/services').subscribe({
+      next: (data: Service[]) => this.services.set(data),
+      error: (e: any) => console.log('Sessão sem permissão para buscar serviços ainda.')
+    });
+  }
+
   addService(service: Service) {
-    this.repository.add(this.SERVICES_KEY, service);
-    this.refreshSignals();
+    this.apiService.post<Service>('/services', service).subscribe({
+      next: (res: Service) => this.loadServices()
+    });
   }
+
   updateService(service: Service) {
-    this.repository.update(this.SERVICES_KEY, service);
-    this.refreshSignals();
+    this.apiService.put<Service>(`/services/${service.id}`, service).subscribe({
+      next: (res: Service) => this.loadServices()
+    });
   }
+
   deleteService(id: string) {
-    this.repository.delete(this.SERVICES_KEY, id);
-    this.refreshSignals();
+    this.apiService.delete<void>(`/services/${id}`).subscribe({
+      next: (res: void) => this.loadServices()
+    });
   }
 
   // Clients
@@ -184,39 +197,5 @@ export class SalonService {
     }
     
     return undefined;
-  }
-
-  private seedInitialData() {
-    if (this.getServices().length === 0) {
-      const initialServices: Service[] = [
-        { id: '1', name: 'Manicure simples', price: 40, durationMinutes: 120, isActive: true },
-        { id: '2', name: 'Pedicure simples', price: 45, durationMinutes: 120, isActive: true },
-        { id: '3', name: 'Pe e mão', price: 80, durationMinutes: 210, isActive: true },
-        { id: '4', name: 'Plástica dos Pés', price: 85, durationMinutes: 150, isActive: true },
-        { id: '5', name: 'Unha em gel mão', price: 75, durationMinutes: 180, isActive: true },
-        { id: '6', name: 'Unha gel pé', price: 85, durationMinutes: 180, isActive: true },
-        { id: '7', name: 'Remoção de Esmaltação', price: 15, durationMinutes: 20, isActive: true },
-        { id: '8', name: 'Limpeza de fungos ungueal', price: 55, durationMinutes: 120, isActive: true },
-        { id: '9', name: 'Decoração unhas', price: 10, durationMinutes: 0, isActive: true },
-        { id: '10', name: 'Esmaltação mão', price: 80, durationMinutes: 120, isActive: true },
-        { id: '11', name: 'Pé', price: 45, durationMinutes: 120, isActive: true },
-        { id: '12', name: 'Mão', price: 35, durationMinutes: 180, isActive: true },
-      ];
-      this.repository.save(this.SERVICES_KEY, initialServices);
-    }
-
-    if (this.getScheduleConfigs().length === 0) {
-      const defaultConfig: DayScheduleConfig[] = [];
-      for (let i = 0; i < 7; i++) {
-        defaultConfig.push({
-          dayOfWeek: i,
-          startTime: '08:00',
-          endTime: '18:00',
-          breaks: [],
-          isClosed: i === 0 // Sunday closed by default
-        });
-      }
-      this.saveScheduleConfigs(defaultConfig);
-    }
   }
 }

@@ -1,4 +1,4 @@
-package com.belezapro.belezapro_api.features.users.models;
+package com.belezapro.belezapro_api.features.services.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,21 +8,21 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import com.belezapro.belezapro_api.common.models.Auditable;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "users")
-public class User extends Auditable {
-    
+@Document(collection = "services")
+public class ServiceItem extends Auditable {
     @Id
     private String id;
     
-    private String name;
-    private String email;
-    private String password;
-    private Role role;
+    private String adminId; // Controle The Tenant!
     
-    @Builder.Default
-    private boolean isBlocked = false;
+    private String name;
+    private BigDecimal price;
+    private Integer durationMinutes;
+    private Boolean isActive;
 }
