@@ -1,6 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { SalonService } from '../../core/services/salon.service';
+import { ApiService } from './api.service';
 import { LocalStorageRepository } from '../repositories/local-storage.repository';
 import { jwtDecode } from 'jwt-decode';
 import { Observable, tap } from 'rxjs';
@@ -11,10 +10,9 @@ export type UserRole = 'ROOT' | 'ADMIN' | 'CLIENT' | null;
   providedIn: 'root'
 })
 export class AuthService {
-  private httpClient = inject(HttpClient);
+  private apiService = inject(ApiService);
   private localStorage = inject(LocalStorageRepository);
-  private salonService = inject(SalonService);
-  
+
   private currentUser = signal<{ role: UserRole, name: string, email: string } | null>(null);
 
   constructor() {
@@ -23,7 +21,7 @@ export class AuthService {
 
   private checkSession() {
     if (typeof window !== 'undefined') {
-      const tokenObj = this.localStorage.getRaw<{token: string}>('auth_token');
+      const tokenObj = this.localStorage.getRaw<{ token: string }>('auth_token');
       if (tokenObj && tokenObj.token) {
         try {
           const decoded = jwtDecode<any>(tokenObj.token);
@@ -32,16 +30,16 @@ export class AuthService {
             this.logout();
             return;
           }
-          
+
           const rawRole = decoded.roles && decoded.roles.length > 0 ? decoded.roles[0] : '';
           const finalRole = rawRole.replace('ROLE_', '');
 
           this.currentUser.set({
-             role: finalRole as UserRole,
-             name: decoded.sub || 'Usuário',
-             email: decoded.sub
+            role: finalRole as UserRole,
+            name: decoded.sub || 'Usuário',
+            email: decoded.sub
           });
-        } catch(e) {
+        } catch (e) {
           console.error("Erro fatal ao extrair sessão do JWT:", e);
           this.logout();
         }
@@ -49,8 +47,8 @@ export class AuthService {
     }
   }
 
-  loginAdmin(email: string, password: string): Observable<{token: string}> {
-    return this.httpClient.post<{token: string}>('http://localhost:8080/api/auth/login', { email, password }).pipe(
+  loginAdmin(email: string, password: string): Observable<{ token: string }> {
+    return this.apiService.post<{ token: string }>('/auth/login', { email, password }).pipe(
       tap(response => {
         if (response.token) {
           this.localStorage.saveRaw('auth_token', { token: response.token });
@@ -61,11 +59,11 @@ export class AuthService {
   }
 
   requestClientOtp(email: string): Observable<void> {
-    return this.httpClient.post<void>('http://localhost:8080/api/auth/otp/request', { email });
+    return this.apiService.post<void>('/auth/otp/request', { email });
   }
 
-  validateClientOtp(email: string, otp: string): Observable<{token: string}> {
-    return this.httpClient.post<{token: string}>('http://localhost:8080/api/auth/otp/validate', { email, password: otp }).pipe(
+  validateClientOtp(email: string, otp: string): Observable<{ token: string }> {
+    return this.apiService.post<{ token: string }>('/auth/otp/validate', { email, password: otp }).pipe(
       tap(response => {
         if (response.token) {
           this.localStorage.saveRaw('auth_token', { token: response.token });
