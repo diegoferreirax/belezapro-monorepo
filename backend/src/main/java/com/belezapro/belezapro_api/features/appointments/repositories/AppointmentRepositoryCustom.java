@@ -15,4 +15,14 @@ public interface AppointmentRepositoryCustom {
         AppointmentStatus status, 
         Pageable pageable
     );
+
+    Page<Appointment> findClientAppointmentsDynamic(
+        String clientId, 
+        String companyId, 
+        String term, 
+        String startDate, 
+        String endDate, 
+        AppointmentStatus status, 
+        Pageable pageable
+    );
 }

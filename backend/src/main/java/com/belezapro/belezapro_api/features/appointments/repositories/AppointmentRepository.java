@@ -3,12 +3,16 @@ package com.belezapro.belezapro_api.features.appointments.repositories;
 import com.belezapro.belezapro_api.features.appointments.models.Appointment;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
 public interface AppointmentRepository extends MongoRepository<Appointment, String>, AppointmentRepositoryCustom {
+
+    @Aggregation(pipeline = { "{ $match: { clientId: ?0 } }", "{ $group: { _id: '$companyId' } }" })
+    List<String> findDistinctCompanyIdsByClientId(String clientId);
 
     List<Appointment> findAllByAdminIdAndDateBetween(String adminId, String startDate, String endDate);
 

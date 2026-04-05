@@ -2,6 +2,8 @@ import { Component, inject, signal, output, computed, effect, input, OnInit } fr
 import { CommonModule } from '@angular/common';
 import { PublicBookingService } from '../../../core/services/public-booking.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
+import { ClientPortalService } from '../../../core/services/client-portal.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ScheduleCalculatorService } from '../../../core/services/schedule-calculator.service';
 import { Service, Appointment, AppointmentStatus, DayScheduleConfig, Company, ProfessionalUser } from '../../../core/models/salon.models';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,6 +26,8 @@ export class BookingFormComponent implements OnInit {
   
   // Opcional para quando for usado na visão do admin para si mesmo
   private appointmentService = inject(AppointmentService);
+  private clientPortalService = inject(ClientPortalService, { optional: true });
+  private authService = inject(AuthService);
 
   finished = output<void>();
   preSelectedClientId = input<string>();
@@ -41,6 +45,7 @@ export class BookingFormComponent implements OnInit {
 
   services = signal<Service[]>([]);
   scheduleConfigs = signal<DayScheduleConfig[]>([]);
+  scheduleOverrides = signal<DayScheduleConfig[]>([]);
   busySlots = signal<Appointment[]>([]);
 
   bookingForm = this.fb.group({
@@ -84,7 +89,14 @@ export class BookingFormComponent implements OnInit {
     
     // Convert to Date to get weekDay
     const dayOfWeek = new Date(date + 'T12:00:00').getDay();
-    const config = this.scheduleConfigs().find(c => c.dayOfWeek === dayOfWeek);
+    
+    // First check if there is a specific override for this date
+    let config = this.scheduleOverrides().find(c => c.date === date);
+    
+    // If no override, fallback to the standard day config
+    if (!config) {
+      config = this.scheduleConfigs().find(c => c.dayOfWeek === dayOfWeek);
+    }
 
     return this.scheduleCalculator.getAvailableTimes(
       date,
@@ -104,6 +116,8 @@ export class BookingFormComponent implements OnInit {
     return 'Confirme seus Dados';
   });
 
+  selectedDateStr = toSignal(this.bookingForm.get('date')!.valueChanges, { initialValue: this.bookingForm.get('date')?.value ?? null });
+
   constructor() {
     effect(() => {
       const times = this.availableTimes();
@@ -113,9 +127,9 @@ export class BookingFormComponent implements OnInit {
       }
     });
     
-    // Auto fetch busy slots based on selected date
+    // Auto fetch busy slots based on selected date and profId (isolated from other form fields)
     effect(() => {
-      const date = this.formValue()?.date;
+      const date = this.selectedDateStr();
       const profId = this.selectedProfessionalId();
       if(date && profId && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
          this.publicBookingService.getBusySlots(profId, date).subscribe(slots => {
@@ -128,6 +142,42 @@ export class BookingFormComponent implements OnInit {
   ngOnInit() {
     if (this.mode() === 'landing' || this.mode() === 'client') {
       this.publicBookingService.getCompanies().subscribe(list => this.companies.set(list));
+    }
+
+    if (this.mode() === 'admin') {
+      const me = this.authService.getUser()();
+      if (me && me.id) {
+        this.selectedProfessionalId.set(me.id);
+        this.publicBookingService.getServices(me.id).subscribe(s => this.services.set(s.filter(x => x.isActive)));
+        this.publicBookingService.getSchedule(me.id).subscribe(s => this.scheduleConfigs.set(s));
+        this.publicBookingService.getScheduleOverrides(me.id).subscribe(s => this.scheduleOverrides.set(s));
+      }
+    }
+
+    if (this.mode() === 'client') {
+      const me = this.authService.getUser()();
+      if (me) {
+        this.bookingForm.patchValue({
+          client: {
+            name: me.name || '',
+            email: me.email || ''
+          }
+        });
+      }
+      if (this.clientPortalService) {
+        this.clientPortalService.getMe().subscribe({
+          next: (user: any) => {
+            this.bookingForm.patchValue({
+              client: {
+                name: user.name || me?.name || '',
+                email: user.email || me?.email || '',
+                phone: user.phone || ''
+              }
+            });
+          },
+          error: () => {}
+        });
+      }
     }
     
     const pDate = this.prefillDate();
@@ -155,8 +205,11 @@ export class BookingFormComponent implements OnInit {
     if(id) {
        this.publicBookingService.getServices(id).subscribe(s => this.services.set(s.filter(x => x.isActive)));
        this.publicBookingService.getSchedule(id).subscribe(s => this.scheduleConfigs.set(s));
+       this.publicBookingService.getScheduleOverrides(id).subscribe(s => this.scheduleOverrides.set(s));
     } else {
        this.services.set([]);
+       this.scheduleConfigs.set([]);
+       this.scheduleOverrides.set([]);
     }
   }
 

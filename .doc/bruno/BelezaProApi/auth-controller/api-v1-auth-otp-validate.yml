@@ -10,8 +10,8 @@ http:
     type: json
     data: |-
       {
-        "email": "admin@belezapro.com",
-        "password": "179848"
+        "email": "client@belezapro.com",
+        "password": "313679"
       }
 
 runtime:

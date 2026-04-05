@@ -40,7 +40,7 @@ export class ScheduleCalculatorService {
       const existingApps = appointments.filter(a =>
         a.date === date &&
         a.status !== AppointmentStatus.CANCELLED &&
-        a.id !== excludeAppointmentId
+        (!excludeAppointmentId || a.id !== excludeAppointmentId)
       );
       const hasOverlapWithAppointment = existingApps.some((a: Appointment) => {
         const aStart = this.timeToMinutes(a.startTime);

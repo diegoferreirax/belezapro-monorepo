@@ -13,7 +13,7 @@ export class AuthService {
   private apiService = inject(ApiService);
   private localStorage = inject(LocalStorageRepository);
 
-  private currentUser = signal<{ role: UserRole, name: string, email: string } | null>(null);
+  private currentUser = signal<{ id?: string, role: UserRole, name: string, email: string } | null>(null);
 
   constructor() {
     this.checkSession();
@@ -34,6 +34,7 @@ export class AuthService {
           const rawRole = decoded.roles && decoded.roles.length > 0 ? decoded.roles[0] : '';
 
           this.currentUser.set({
+            id: decoded.userId,
             role: rawRole as UserRole,
             name: decoded.sub || 'Usuário',
             email: decoded.sub

@@ -34,6 +34,14 @@ public class AppointmentService {
         return appointmentRepository.findAppointmentsDynamic(adminId, clientId, term, startDate, endDate, status, pageable);
     }
 
+    public Page<Appointment> getPaginatedClientList(String clientId, String companyId, String term, String startDate, String endDate, AppointmentStatus status, Pageable pageable) {
+        return appointmentRepository.findClientAppointmentsDynamic(clientId, companyId, term, startDate, endDate, status, pageable);
+    }
+
+    public List<String> getClientCompanyIds(String clientId) {
+        return appointmentRepository.findDistinctCompanyIdsByClientId(clientId);
+    }
+
     public List<Appointment> getRangeForCalendar(String adminId, String startDate, String endDate) {
         return appointmentRepository.findAllByAdminIdAndDateBetween(adminId, startDate, endDate);
     }

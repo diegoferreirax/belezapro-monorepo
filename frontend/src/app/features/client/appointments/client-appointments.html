@@ -13,9 +13,19 @@
     </div>
   </header>
 
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 w-full sm:w-auto">
-    <app-search-input (searchTerm)="onSearch($event)"
-      placeholder="Buscar por nome, e-mail ou telefone..."></app-search-input>
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 w-full">
+    <div class="flex items-center gap-4 w-full sm:w-auto">
+      <select [ngModel]="selectedCompanyId()" (change)="onCompanySelected($event)" 
+          class="bg-white border border-stone-200 text-stone-700 text-sm rounded-xl focus:ring-stone-500 focus:border-stone-500 block w-full sm:w-48 p-2.5 shadow-sm">
+        <option value="">Todas as Empresas</option>
+        @for (company of companies(); track company.id) {
+          <option [value]="company.id">{{ company.name }}</option>
+        }
+      </select>
+
+      <app-search-input (searchTerm)="onSearch($event)"
+        placeholder="Buscar por serviços..." class="flex-1"></app-search-input>
+    </div>
   </div>
 
   <div class="bg-white rounded-3xl border border-stone-100 overflow-hidden shadow-sm">

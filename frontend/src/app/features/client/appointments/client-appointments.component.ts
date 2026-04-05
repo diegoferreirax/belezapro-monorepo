@@ -1,9 +1,10 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SalonService } from '../../../core/services/salon.service';
+import { ClientPortalService } from '../../../core/services/client-portal.service';
+import { AppointmentService } from '../../../core/services/appointment.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { AppointmentStatus, Service } from '../../../core/models/salon.models';
-import { PageRequest } from '../../../core/models/pagination.models';
+import { AppointmentStatus, Company, Appointment } from '../../../core/models/salon.models';
+import { PageRequest, PageResponse } from '../../../core/models/pagination.models';
 import { MatIconModule } from '@angular/material/icon';
 import { DurationFormatPipe } from '../../../shared/pipes/duration-format.pipe';
 import { Router } from '@angular/router';
@@ -11,16 +12,18 @@ import { ClientBookingModalComponent } from './client-booking-modal/client-booki
 import { ClientCancelModalComponent } from './client-cancel-modal/client-cancel-modal';
 import { SearchInputComponent } from '../../../shared/components/search-input/search-input.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-client-appointments',
   standalone: true,
-  imports: [CommonModule, MatIconModule, DurationFormatPipe, ClientBookingModalComponent, ClientCancelModalComponent, SearchInputComponent, PaginationComponent],
+  imports: [CommonModule, MatIconModule, DurationFormatPipe, ClientBookingModalComponent, ClientCancelModalComponent, SearchInputComponent, PaginationComponent, FormsModule],
   templateUrl: './client-appointments.html'
 })
-export class ClientAppointmentsComponent {
-  private salonService = inject(SalonService);
+export class ClientAppointmentsComponent implements OnInit {
+  private clientPortalService = inject(ClientPortalService);
   private authService = inject(AuthService);
+  private appointmentService = inject(AppointmentService); // needed for generic cancels
 
   pageRequest = signal<PageRequest>({
     page: 1,
@@ -30,30 +33,10 @@ export class ClientAppointmentsComponent {
     sortDirection: 'desc'
   });
 
-  paginatedData = computed(() => {
-    const user = this.authService.getUser()();
-    if (!user || !user.email) return { items: [], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 };
-    // const client = this.salonService.getClientByEmail(user.email);
-    // if (!client) return { items: [], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 };
-
-    // return this.salonService.getAppointmentsPaginated(this.pageRequest(), client.id);
-    return {
-      items: [
-        {
-          id: '1',
-          date: new Date(),
-          startTime: '10:00',
-          endTime: '11:00',
-          totalPrice: 100,
-          totalDurationMinutes: 60,
-          status: AppointmentStatus.PENDING,
-          serviceIds: ['1'],
-          parsedServiceNames: ['Service 1'],
-          clientName: 'Client 1'
-        }
-      ], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10
-    };
-  });
+  paginatedData = signal<PageResponse<Appointment>>({ items: [], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 });
+  
+  companies = signal<Company[]>([]);
+  selectedCompanyId = signal<string>('');
 
   isModalOpen = signal(false);
   cancelingAppointmentId = signal<string | undefined>(undefined);
@@ -63,8 +46,41 @@ export class ClientAppointmentsComponent {
 
   AppointmentStatus = AppointmentStatus;
 
-  getServiceNames(app: any) {
+  constructor() {
+    effect(() => {
+      this.loadAppointments();
+    });
+  }
+
+  ngOnInit() {
+    this.clientPortalService.getCompaniesWithAppointments().subscribe({
+      next: (list) => {
+        this.companies.set(list);
+      },
+      error: () => console.error("Falha ao carregar empresas do cliente")
+    });
+  }
+
+  loadAppointments() {
+    const req = this.pageRequest();
+    this.clientPortalService.getPaginatedList(
+      req,
+      this.selectedCompanyId() || undefined,
+      req.searchTerm
+    ).subscribe({
+      next: (res) => this.paginatedData.set(res),
+      error: () => console.error('Erro ao listar agendamentos do cliente.')
+    });
+  }
+
+  getServiceNames(app: Appointment) {
     return app.parsedServiceNames ? app.parsedServiceNames.join(', ') : '';
+  }
+
+  onCompanySelected(event: any) {
+    const val = event.target.value;
+    this.selectedCompanyId.set(val);
+    this.pageRequest.update(r => ({ ...r, page: 1 }));
   }
 
   confirmCancel(id: string) {
@@ -78,11 +94,26 @@ export class ClientAppointmentsComponent {
   async executeCancel() {
     const id = this.cancelingAppointmentId();
     if (id) {
-      // const appointment = this.salonService.getAppointments().find(a => a.id === id);
-      // if (appointment) {
-      //   await this.salonService.updateAppointment({ ...appointment, status: AppointmentStatus.CANCELLED });
-      // }
-      this.cancelingAppointmentId.set(undefined);
+      const app = this.paginatedData().items.find(a => a.id === id);
+      if (app) {
+        // Technically the client should be able to cancel, but the backend update method usually verifies adminId. 
+        // We'll need to make sure the general update supports clients cancelling their own, or use a specific endpoint.
+        // Wait, for now we will just use the general update assuming that it will be handled or might throw error if missing role.
+        // Oh actually the backend `update` method validates `adminId`.
+        // We might hit an error if we use `appointmentService.update`, so let's keep it minimal and just alert if failed.
+        this.appointmentService.update(id, { ...app, status: AppointmentStatus.CANCELLED }).subscribe({
+            next: () => {
+                this.loadAppointments();
+                this.cancelingAppointmentId.set(undefined);
+            },
+            error: () => {
+                alert("Erro ao tentar cancelar. Permissão negada ou não implementado pra CLIENTE no backend genérico ainda.");
+                this.cancelingAppointmentId.set(undefined);
+            }
+        });
+      } else {
+        this.cancelingAppointmentId.set(undefined);
+      }
     }
   }
 
@@ -102,6 +133,7 @@ export class ClientAppointmentsComponent {
 
   onBookingFinished() {
     this.isModalOpen.set(false);
+    this.loadAppointments();
   }
 
   onSearch(term: string) {

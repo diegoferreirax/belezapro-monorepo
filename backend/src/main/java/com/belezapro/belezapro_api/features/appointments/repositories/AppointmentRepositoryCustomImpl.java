@@ -57,4 +57,41 @@ public class AppointmentRepositoryCustomImpl implements AppointmentRepositoryCus
 
         return new PageImpl<>(list, pageable, total);
     }
+
+    @Override
+    public Page<Appointment> findClientAppointmentsDynamic(String clientId, String companyId, String term, String startDate, String endDate, AppointmentStatus status, Pageable pageable) {
+        Criteria criteria = Criteria.where("clientId").is(clientId);
+
+        if (companyId != null && !companyId.isBlank()) {
+            criteria.and("companyId").is(companyId);
+        }
+
+        if (term != null && !term.isBlank()) {
+            Criteria termCriteria = new Criteria().orOperator(
+                Criteria.where("clientName").regex(term, "i"),
+                Criteria.where("parsedServiceNames").regex(term, "i")
+            );
+            criteria.andOperator(termCriteria);
+        }
+
+        if (startDate != null && endDate != null) {
+            criteria.and("date").gte(startDate).lte(endDate);
+        } else if (startDate != null) {
+            criteria.and("date").gte(startDate);
+        } else if (endDate != null) {
+            criteria.and("date").lte(endDate);
+        }
+
+        if (status != null) {
+            criteria.and("status").is(status);
+        }
+
+        Query query = new Query(criteria);
+        long total = mongoTemplate.count(query, Appointment.class);
+
+        query.with(pageable);
+        List<Appointment> list = mongoTemplate.find(query, Appointment.class);
+
+        return new PageImpl<>(list, pageable, total);
+    }
 }

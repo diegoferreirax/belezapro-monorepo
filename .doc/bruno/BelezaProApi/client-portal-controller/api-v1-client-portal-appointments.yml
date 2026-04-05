@@ -1,11 +1,11 @@
 info:
-  name: api/v1/appointments/cancel/date/2026-04-10
+  name: api/v1/client-portal/appointments
   type: http
-  seq: 12
+  seq: 2
 
 http:
-  method: PATCH
-  url: "{{belezapro-api}}/api/v1/appointments/cancel/date/2026-04-06"
+  method: GET
+  url: "{{belezapro-api}}/api/v1/client-portal/appointments?page=0&size=15"
   auth:
     type: bearer
     token: "{{token}}"

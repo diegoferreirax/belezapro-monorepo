@@ -84,15 +84,35 @@ public class PublicBookingController {
         User clientUser = userRepository.findAll().stream()
             .filter(u -> email.equals(u.getEmail()) && u.getRole() == Role.CLIENT)
             .findFirst()
-            .orElseGet(() -> {
-                User newUser = User.builder()
-                    .name(req.getClient().getName())
-                    .email(req.getClient().getEmail())
-                    .phone(req.getClient().getPhone())
-                    .role(Role.CLIENT)
-                    .build();
-                return userRepository.save(newUser);
-            });
+            .orElse(null);
+
+        if (clientUser == null) {
+            clientUser = User.builder()
+                .name(req.getClient().getName())
+                .email(req.getClient().getEmail())
+                .phone(req.getClient().getPhone())
+                .role(Role.CLIENT)
+                .build();
+            clientUser = userRepository.save(clientUser);
+        } else {
+            boolean needsUpdate = false;
+            
+            // Allow overriding name if they typed a new one, unless the old one was null
+            if (req.getClient().getName() != null && !req.getClient().getName().isBlank() && !req.getClient().getName().equals(clientUser.getName())) {
+                clientUser.setName(req.getClient().getName());
+                needsUpdate = true;
+            }
+            
+            // Overriding phone
+            if (req.getClient().getPhone() != null && !req.getClient().getPhone().isBlank() && !req.getClient().getPhone().equals(clientUser.getPhone())) {
+                clientUser.setPhone(req.getClient().getPhone());
+                needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+                clientUser = userRepository.save(clientUser);
+            }
+        }
 
         Appointment appointment = Appointment.builder()
             .clientId(clientUser.getId())

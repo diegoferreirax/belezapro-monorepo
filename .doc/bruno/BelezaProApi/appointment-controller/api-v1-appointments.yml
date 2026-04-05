@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{belezapro-api}}/api/v1/appointments?page=0&size=15&clientId=69d15f3d1a5c5893d5c40640"
+  url: "{{belezapro-api}}/api/v1/appointments?page=0&size=15&clientId=69d265df10fcd1b6aa354b0c"
   params:
     - name: page
       value: "0"
@@ -14,7 +14,7 @@ http:
       value: "15"
       type: query
     - name: clientId
-      value: 69d15f3d1a5c5893d5c40640
+      value: 69d265df10fcd1b6aa354b0c
       type: query
   auth:
     type: bearer

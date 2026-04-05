@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-          "email": "admin@belezapro.com",
+          "email": "maria@belezapro.com",
           "password": "admin123"
       }
 
