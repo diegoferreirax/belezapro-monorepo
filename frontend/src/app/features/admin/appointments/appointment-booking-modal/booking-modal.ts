@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { BookingFormComponent } from '../../../../shared/components/booking-form/booking-form.component';
+import { Appointment } from '../../../../core/models/salon.models';
 
 @Component({
   selector: 'app-appointment-booking-modal',
@@ -11,7 +12,7 @@ import { BookingFormComponent } from '../../../../shared/components/booking-form
 })
 export class AppointmentBookingModalComponent {
   @Input() isOpen = false;
-  @Input() editAppointmentId: string | undefined;
+  @Input() editAppointment: Appointment | undefined;
   @Input() prefillDate: string | undefined;
   @Input() prefillTime: string | undefined;
   @Output() closed = new EventEmitter<void>();

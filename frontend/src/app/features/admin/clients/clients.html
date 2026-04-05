@@ -87,7 +87,7 @@
   <!-- Booking Modal -->
   <app-client-booking-modal
     [isOpen]="isBookingModalOpen()"
-    [clientId]="selectedClientForBooking()?.id"
+    [client]="selectedClientForBooking()"
     (closed)="closeBookingModal()"
     (finished)="closeBookingModal()">
   </app-client-booking-modal>

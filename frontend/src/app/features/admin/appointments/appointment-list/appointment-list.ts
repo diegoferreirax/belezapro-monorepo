@@ -1,7 +1,7 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { Appointment, AppointmentStatus, Client, Service } from '../../../../core/models/salon.models';
+import { Appointment, AppointmentStatus, AppointmentStatusLabels, Client, Service } from '../../../../core/models/salon.models';
 import { DurationFormatPipe } from '../../../../shared/pipes/duration-format.pipe';
 
 @Component({
@@ -20,6 +20,7 @@ export class AppointmentListComponent {
   statusChange = output<{ appointment: Appointment, status: AppointmentStatus }>();
 
   AppointmentStatus = AppointmentStatus;
+  StatusLabels = AppointmentStatusLabels;
 
   getClientName(appointment: Appointment): string {
     return appointment.clientName || 'Cliente desconhecido';

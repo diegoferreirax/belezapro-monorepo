@@ -1,5 +1,6 @@
 package com.belezapro.belezapro_api.features.clients.services;
 
+import com.belezapro.belezapro_api.features.appointments.services.AppointmentService;
 import com.belezapro.belezapro_api.features.clients.models.*;
 import com.belezapro.belezapro_api.features.clients.repositories.ClientAdminLinkRepository;
 import com.belezapro.belezapro_api.features.users.models.Role;
@@ -18,13 +19,16 @@ public class ClientService {
     private final UserRepository userRepository;
     private final ClientAdminLinkRepository linkRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AppointmentService appointmentService;
 
     public ClientService(UserRepository userRepository,
                          ClientAdminLinkRepository linkRepository,
-                         PasswordEncoder passwordEncoder) {
+                         PasswordEncoder passwordEncoder,
+                         AppointmentService appointmentService) {
         this.userRepository = userRepository;
         this.linkRepository = linkRepository;
         this.passwordEncoder = passwordEncoder;
+        this.appointmentService = appointmentService;
     }
 
     /**
@@ -115,12 +119,24 @@ public class ClientService {
         link.setBlocked(!link.isBlocked());
         linkRepository.save(link);
 
-        // TODO: quando Appointments for migrado, cancelar agendamentos futuros deste cliente para este admin
         if (link.isBlocked()) {
-            System.out.println("[TODO] Cancelar agendamentos futuros do usuario " + userId + " para admin " + adminId);
+            appointmentService.cancelFutureAppointments(userId, adminId);
         }
 
         return toDto(user, link);
+    }
+
+    /**
+     * Garante que o vínculo entre cliente e admin existe.
+     */
+    public void ensureLink(String userId, String adminId) {
+        if (!linkRepository.existsByUserIdAndAdminId(userId, adminId)) {
+            ClientAdminLink link = ClientAdminLink.builder()
+                .userId(userId)
+                .adminId(adminId)
+                .build();
+            linkRepository.save(link);
+        }
     }
 
     private ClientDto toDto(User user, ClientAdminLink link) {

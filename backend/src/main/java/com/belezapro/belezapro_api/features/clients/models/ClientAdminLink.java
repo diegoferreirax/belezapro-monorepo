@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "client_admin_links")
-@CompoundIndex(name = "client_admin_unique", def = "{'clientId': 1, 'adminId': 1}", unique = true)
+@CompoundIndex(name = "client_admin_unique", def = "{'userId': 1, 'adminId': 1}", unique = true)
 public class ClientAdminLink extends Auditable {
 
     @Id

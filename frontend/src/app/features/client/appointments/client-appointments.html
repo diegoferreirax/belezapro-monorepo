@@ -62,13 +62,13 @@
                   'bg-emerald-50 text-emerald-600': app.status === AppointmentStatus.COMPLETED,
                   'bg-rose-50 text-rose-600': app.status === AppointmentStatus.CANCELLED
                 }" class="px-3 py-1 rounded-full text-xs font-medium">
-                {{ app.status }}
+                {{ StatusLabels[app.status] }}
               </span>
             </td>
             <td class="p-4 text-right">
               <div class="flex justify-end gap-1">
                 @if (app.status === AppointmentStatus.PENDING || app.status === AppointmentStatus.CONFIRMED) {
-                <button (click)="openEditModal(app.id)" title="Reagendar"
+                <button (click)="openEditModal(app)" title="Reagendar"
                   class="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-50 rounded-lg">
                   <mat-icon>edit_calendar</mat-icon>
                 </button>
@@ -98,7 +98,7 @@
   </div>
 
   <!-- Booking Modal -->
-  <app-client-booking-modal [isOpen]="isModalOpen()" [editAppointmentId]="editingAppointmentId()"
+  <app-client-booking-modal [isOpen]="isModalOpen()" [editAppointment]="editingAppointment()"
     (closed)="closeModal()" (finished)="onBookingFinished()">
   </app-client-booking-modal>
 

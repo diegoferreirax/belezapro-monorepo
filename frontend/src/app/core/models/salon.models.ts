@@ -32,16 +32,28 @@ export interface Client {
 }
 
 export enum AppointmentStatus {
-  PENDING = 'Pendente',
-  CONFIRMED = 'Confirmado',
-  COMPLETED = 'Concluído',
-  CANCELLED = 'Cancelado'
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
 }
+
+export const AppointmentStatusLabels: Record<AppointmentStatus, string> = {
+  [AppointmentStatus.PENDING]: 'Pendente',
+  [AppointmentStatus.CONFIRMED]: 'Confirmado',
+  [AppointmentStatus.COMPLETED]: 'Concluído',
+  [AppointmentStatus.CANCELLED]: 'Cancelado'
+};
+
 
 export interface Appointment {
   id: string;
+  adminId?: string;
+  companyId?: string;
   clientId: string;
   clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
   serviceIds: string[];
   parsedServiceNames?: string[];
   date: string; // ISO Date YYYY-MM-DD

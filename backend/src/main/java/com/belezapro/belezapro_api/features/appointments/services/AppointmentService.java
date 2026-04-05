@@ -3,6 +3,8 @@ package com.belezapro.belezapro_api.features.appointments.services;
 import com.belezapro.belezapro_api.features.appointments.models.Appointment;
 import com.belezapro.belezapro_api.features.appointments.models.AppointmentStatus;
 import com.belezapro.belezapro_api.features.appointments.repositories.AppointmentRepository;
+import com.belezapro.belezapro_api.features.clients.models.ClientAdminLink;
+import com.belezapro.belezapro_api.features.clients.repositories.ClientAdminLinkRepository;
 import com.belezapro.belezapro_api.features.services.models.ServiceItem;
 import com.belezapro.belezapro_api.features.services.repositories.ServiceItemRepository;
 import com.belezapro.belezapro_api.features.users.models.User;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,13 +24,16 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
     private final ServiceItemRepository serviceItemRepository;
+    private final ClientAdminLinkRepository linkRepository;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
                               UserRepository userRepository,
-                              ServiceItemRepository serviceItemRepository) {
+                              ServiceItemRepository serviceItemRepository,
+                              ClientAdminLinkRepository linkRepository) {
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
         this.serviceItemRepository = serviceItemRepository;
+        this.linkRepository = linkRepository;
     }
 
     public Page<Appointment> getPaginatedList(String adminId, String clientId, String term, String startDate, String endDate, AppointmentStatus status, Pageable pageable) {
@@ -57,6 +63,14 @@ public class AppointmentService {
         }
         
         enrichAppointmentData(adminId, data);
+        
+        // Garante o vínculo do cliente com o admin/profissional
+        if (!linkRepository.existsByUserIdAndAdminId(data.getClientId(), adminId)) {
+            linkRepository.save(ClientAdminLink.builder()
+                .userId(data.getClientId())
+                .adminId(adminId)
+                .build());
+        }
         
         return appointmentRepository.save(data);
     }
@@ -95,6 +109,15 @@ public class AppointmentService {
         }
     }
 
+    public void cancelFutureAppointments(String clientId, String adminId) {
+        String today = LocalDate.now().toString(); // YYYY-MM-DD
+        List<Appointment> futures = appointmentRepository.findActiveFutureByClientAndAdmin(clientId, adminId, today);
+        for (Appointment app : futures) {
+            app.setStatus(AppointmentStatus.CANCELLED);
+            appointmentRepository.save(app);
+        }
+    }
+
     /**
      * Aplica a Desnormalizacao dos Dados
      */
@@ -103,6 +126,8 @@ public class AppointmentService {
         User client = userRepository.findById(appointment.getClientId()).orElse(null);
         if (client != null) {
             appointment.setClientName(client.getName());
+            appointment.setClientEmail(client.getEmail());
+            appointment.setClientPhone(client.getPhone());
         }
 
         // Popula as listas de nomes os servicos e re-calcula as financas.

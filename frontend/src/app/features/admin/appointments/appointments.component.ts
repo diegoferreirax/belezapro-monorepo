@@ -46,7 +46,7 @@ export class AppointmentsComponent implements OnInit {
   appointments = computed(() => this.paginatedData().items);
 
   isModalOpen = signal(false);
-  editingAppointmentId = signal<string | undefined>(undefined);
+  editingAppointment = signal<Appointment | undefined>(undefined);
   cancelingAppointmentId = signal<string | undefined>(undefined);
   cancelingAppointment = computed(() => this.appointments().find(a => a.id === this.cancelingAppointmentId()));
   completingAppointment = signal<Appointment | undefined>(undefined);
@@ -138,7 +138,7 @@ export class AppointmentsComponent implements OnInit {
   }
 
   openBookingModal() {
-    this.editingAppointmentId.set(undefined);
+    this.editingAppointment.set(undefined);
     this.prefillDate.set(undefined);
     this.prefillTime.set(undefined);
     this.isModalOpen.set(true);
@@ -146,18 +146,18 @@ export class AppointmentsComponent implements OnInit {
 
   closeModal() {
     this.isModalOpen.set(false);
-    this.editingAppointmentId.set(undefined);
+    this.editingAppointment.set(undefined);
     this.prefillDate.set(undefined);
     this.prefillTime.set(undefined);
   }
 
   openEditModal(appointment: Appointment) {
-    this.editingAppointmentId.set(appointment.id);
+    this.editingAppointment.set(appointment);
     this.isModalOpen.set(true);
   }
 
   openBookingModalAt(data: { date: Date, hour: number, minutes: number }) {
-    this.editingAppointmentId.set(undefined);
+    this.editingAppointment.set(undefined);
     this.prefillDate.set(data.date.toLocaleDateString('en-CA'));
     const timeStr = `${data.hour.toString().padStart(2, '0')}:${data.minutes.toString().padStart(2, '0')}`;
     this.prefillTime.set(timeStr);

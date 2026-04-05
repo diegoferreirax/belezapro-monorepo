@@ -40,7 +40,7 @@ export class ClientsComponent implements OnInit {
   editingClient = signal<Client | null>(null);
 
   isBookingModalOpen = signal(false);
-  selectedClientForBooking = signal<Client | null>(null);
+  selectedClientForBooking = signal<Client | undefined>(undefined);
 
   isBlockModalOpen = signal(false);
   clientToBlock = signal<Client | null>(null);
@@ -65,7 +65,7 @@ export class ClientsComponent implements OnInit {
 
   closeBookingModal() {
     this.isBookingModalOpen.set(false);
-    this.selectedClientForBooking.set(null);
+    this.selectedClientForBooking.set(undefined);
   }
 
   toggleBlockClient(client: Client) {

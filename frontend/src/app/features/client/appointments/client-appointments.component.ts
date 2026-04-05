@@ -3,11 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ClientPortalService } from '../../../core/services/client-portal.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { AppointmentStatus, Company, Appointment } from '../../../core/models/salon.models';
+import { AppointmentStatus, AppointmentStatusLabels, Company, Appointment } from '../../../core/models/salon.models';
 import { PageRequest, PageResponse } from '../../../core/models/pagination.models';
 import { MatIconModule } from '@angular/material/icon';
 import { DurationFormatPipe } from '../../../shared/pipes/duration-format.pipe';
-import { Router } from '@angular/router';
 import { ClientBookingModalComponent } from './client-booking-modal/client-booking-modal';
 import { ClientCancelModalComponent } from './client-cancel-modal/client-cancel-modal';
 import { SearchInputComponent } from '../../../shared/components/search-input/search-input.component';
@@ -40,11 +39,12 @@ export class ClientAppointmentsComponent implements OnInit {
 
   isModalOpen = signal(false);
   cancelingAppointmentId = signal<string | undefined>(undefined);
-  editingAppointmentId = signal<string | undefined>(undefined);
+  editingAppointment = signal<Appointment | undefined>(undefined);
 
   userName = computed(() => this.authService.getUser()()?.name || 'Cliente');
 
   AppointmentStatus = AppointmentStatus;
+  StatusLabels = AppointmentStatusLabels;
 
   constructor() {
     effect(() => {
@@ -118,7 +118,7 @@ export class ClientAppointmentsComponent implements OnInit {
   }
 
   openBookingModal() {
-    this.editingAppointmentId.set(undefined);
+    this.editingAppointment.set(undefined);
     this.isModalOpen.set(true);
   }
 
@@ -126,8 +126,8 @@ export class ClientAppointmentsComponent implements OnInit {
     this.isModalOpen.set(false);
   }
 
-  openEditModal(id: string) {
-    this.editingAppointmentId.set(id);
+  openEditModal(appointment: Appointment) {
+    this.editingAppointment.set(appointment);
     this.isModalOpen.set(true);
   }
 

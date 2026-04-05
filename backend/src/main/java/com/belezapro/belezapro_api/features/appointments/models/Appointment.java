@@ -33,6 +33,8 @@ public class Appointment extends Auditable {
     private String clientId;
 
     private String clientName; // Desnormalizado para pesquisas textuais mais rapidas
+    private String clientEmail;
+    private String clientPhone;
 
     private List<String> serviceIds = new ArrayList<>();
 

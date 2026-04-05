@@ -134,6 +134,7 @@ public class PublicBookingController {
         List<Appointment> actives = appointmentService.getActiveByDate(professionalId, date);
         List<com.belezapro.belezapro_api.features.appointments.models.PublicBusySlot> slots = actives.stream()
             .map(a -> com.belezapro.belezapro_api.features.appointments.models.PublicBusySlot.builder()
+                .id(a.getId())
                 .date(a.getDate())
                 .startTime(a.getStartTime())
                 .totalDurationMinutes(a.getTotalDurationMinutes())

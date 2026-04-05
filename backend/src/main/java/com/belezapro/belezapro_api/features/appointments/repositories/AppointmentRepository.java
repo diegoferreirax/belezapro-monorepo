@@ -20,5 +20,8 @@ public interface AppointmentRepository extends MongoRepository<Appointment, Stri
 
     @Query("{'adminId': ?0, 'date': ?1, 'status': { $in: ['PENDING', 'CONFIRMED'] }}")
     List<Appointment> findActiveByAdminIdAndDate(String adminId, String date);
+    
+    @Query("{'clientId': ?0, 'adminId': ?1, 'date': { $gte: ?2 }, 'status': { $in: ['PENDING', 'CONFIRMED'] }}")
+    List<Appointment> findActiveFutureByClientAndAdmin(String clientId, String adminId, String date);
 
 }

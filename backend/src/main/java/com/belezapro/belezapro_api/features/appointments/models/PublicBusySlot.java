@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class PublicBusySlot {
+    private String id;
     private String date;
     private String startTime;
     private Integer totalDurationMinutes;

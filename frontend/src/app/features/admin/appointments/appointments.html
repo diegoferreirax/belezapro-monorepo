@@ -63,7 +63,7 @@
   }
 
   <!-- Booking Modal -->
-  <app-appointment-booking-modal [isOpen]="isModalOpen()" [editAppointmentId]="editingAppointmentId()"
+  <app-appointment-booking-modal [isOpen]="isModalOpen()" [editAppointment]="editingAppointment()"
     [prefillDate]="prefillDate()" [prefillTime]="prefillTime()" (closed)="closeModal()"
     (finished)="onBookingFinished()">
   </app-appointment-booking-modal>

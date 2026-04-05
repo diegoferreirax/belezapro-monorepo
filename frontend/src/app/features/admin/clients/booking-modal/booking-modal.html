@@ -8,7 +8,7 @@
         </button>
       </div>
       <div class="flex-1 overflow-auto p-6">
-        <app-booking-form [preSelectedClientId]="clientId" mode="admin" (finished)="onFinished()"></app-booking-form>
+        <app-booking-form [selectedClient]="client" mode="admin" (finished)="onFinished()"></app-booking-form>
       </div>
     </div>
   </div>
