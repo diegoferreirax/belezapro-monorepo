@@ -24,6 +24,9 @@ public class Appointment extends Auditable {
     private String id;
 
     @Indexed
+    private String companyId;
+
+    @Indexed
     private String adminId;
 
     @Indexed

@@ -19,7 +19,7 @@ public class JwtTokenService {
 
     public String generateToken(User user) {
         Algorithm algorithm = Algorithm.HMAC256(secret);
-        String role = "ROLE_" + user.getRole().name();
+        String role = user.getRole().name();
 
         return JWT.create()
                 .withSubject(user.getEmail())

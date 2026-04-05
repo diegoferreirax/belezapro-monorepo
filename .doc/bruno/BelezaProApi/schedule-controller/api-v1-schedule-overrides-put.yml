@@ -1,0 +1,26 @@
+info:
+  name: api/v1/schedule/overrides
+  type: http
+  seq: 15
+
+http:
+  method: PUT
+  url: "{{belezapro-api}}/api/v1/schedule/overrides"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+
+body:json:
+  [
+  {
+    "date": "2026-04-10",
+    "isClosed": true
+  }
+]
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,27 @@
+info:
+  name: api/v1/appointments
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{belezapro-api}}/api/v1/appointments?page=0&size=15&clientId=69d15f3d1a5c5893d5c40640"
+  params:
+    - name: page
+      value: "0"
+      type: query
+    - name: size
+      value: "15"
+      type: query
+    - name: clientId
+      value: 69d15f3d1a5c5893d5c40640
+      type: query
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

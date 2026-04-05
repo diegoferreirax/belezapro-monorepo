@@ -1,0 +1,103 @@
+info:
+  name: api/v1/auth/login
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{belezapro-api}}/api/v1/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+          "email": "admin@belezapro.com",
+          "password": "admin123"
+      }
+
+      /*
+      {
+          "email": "root@belezapro.com",
+          "password": "root123"
+      }
+
+      {
+          "email": "admin2@belezapro.com",
+          "password": "admin123"
+      }
+
+      */
+
+runtime:
+  scripts:
+    - type: after-response
+      code: "// Verifica se o status da resposta é 200 (OK)\r
+
+        if (res.getStatus() === 200) {\r
+
+        \    // 1. Faz o parse do corpo da resposta JSON\r
+
+        \    var jsonData = res.getBody();\r
+
+        \    \r
+
+        \    // 2. Tenta extrair o token das chaves mais comuns: 'token' ou 'accessToken'\r
+
+        \    var token = jsonData.token; \r
+
+        \r
+
+        \    // VERIFICAÇÃO DE DADOS (opcional, mas útil para debug)\r
+
+        \    console.log(\"Token capturado: \" + token);\r
+
+        \    \r
+
+        \    // 3. Verifica se o token foi realmente encontrado\r
+
+        \    if (token) {\r
+
+        \        // Altere 'environment' para 'globals' se quiser que o token seja global\r
+
+        \        // Nota: O método .set() armazena a variável.\r
+
+        \        bru.setEnvVar(\"token\", token);\r
+
+        \        \r
+
+        \        // Exibe mensagem de sucesso nos testes\r
+
+        \        test(\"Status 200 e Token Armazenado com Sucesso\", function () {\r
+
+        \            expect(token).to.be.a(\"string\");\r
+
+        \        });\r
+
+        \    } else {\r
+
+        \        test(\"Falha: Token não encontrado no corpo da resposta\", function () {\r
+
+        \            expect(token).to.not.be.undefined;\r
+
+        \        });\r
+
+        \    }\r
+
+        \r
+
+        } else {\r
+
+        \    // Exibe mensagem de falha se a requisição não retornou 200\r
+
+        \    test(\"Falha no Login: Status Code não é 200\", function () {\r
+
+        \        expect(res.getStatus()).to.eql(200);\r
+
+        \    });\r
+
+        }"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

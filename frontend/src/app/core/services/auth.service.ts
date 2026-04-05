@@ -32,10 +32,9 @@ export class AuthService {
           }
 
           const rawRole = decoded.roles && decoded.roles.length > 0 ? decoded.roles[0] : '';
-          const finalRole = rawRole.replace('ROLE_', '');
 
           this.currentUser.set({
-            role: finalRole as UserRole,
+            role: rawRole as UserRole,
             name: decoded.sub || 'Usuário',
             email: decoded.sub
           });

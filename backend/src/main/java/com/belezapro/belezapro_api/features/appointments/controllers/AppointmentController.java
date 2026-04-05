@@ -3,6 +3,7 @@ package com.belezapro.belezapro_api.features.appointments.controllers;
 import com.belezapro.belezapro_api.features.appointments.models.Appointment;
 import com.belezapro.belezapro_api.features.appointments.models.AppointmentStatus;
 import com.belezapro.belezapro_api.features.appointments.services.AppointmentService;
+import com.belezapro.belezapro_api.features.authentication.annotation.RequireRoles;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/appointments")
+@RequireRoles({ "ADMIN", "ROOT" })
 public class AppointmentController {
 
     private final AppointmentService appointmentService;

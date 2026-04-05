@@ -1,0 +1,7 @@
+info:
+  name: client-controller
+  type: folder
+  seq: 4
+
+request:
+  auth: inherit

@@ -1,0 +1,23 @@
+info:
+  name: api/v1/appointments/APPOINTMENT_ID
+  type: http
+  seq: 8
+
+http:
+  method: PUT
+  url: "{{belezapro-api}}/api/v1/appointments/APPOINTMENT_ID"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+
+body:json:
+  {
+  "status": "COMPLETED"
+}
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

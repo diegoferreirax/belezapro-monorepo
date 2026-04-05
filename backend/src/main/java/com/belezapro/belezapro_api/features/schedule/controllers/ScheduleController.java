@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/schedule")
-@RequireRoles({"ROLE_ADMIN", "ROLE_ROOT"})
+@RequireRoles({"ADMIN", "ROOT"})
 public class ScheduleController {
 
     private final ScheduleService scheduleService;

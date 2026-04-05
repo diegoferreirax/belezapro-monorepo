@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/clients")
-@RequireRoles({"ROLE_ADMIN", "ROLE_ROOT"})
+@RequireRoles({"ADMIN", "ROOT"})
 public class ClientController {
 
     private final ClientService clientService;

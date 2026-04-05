@@ -21,7 +21,6 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 export class ClientAppointmentsComponent {
   private salonService = inject(SalonService);
   private authService = inject(AuthService);
-  private router = inject(Router);
 
   pageRequest = signal<PageRequest>({
     page: 1,
@@ -34,10 +33,26 @@ export class ClientAppointmentsComponent {
   paginatedData = computed(() => {
     const user = this.authService.getUser()();
     if (!user || !user.email) return { items: [], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 };
-    const client = this.salonService.getClientByEmail(user.email);
-    if (!client) return { items: [], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 };
-    
-    return this.salonService.getAppointmentsPaginated(this.pageRequest(), client.id);
+    // const client = this.salonService.getClientByEmail(user.email);
+    // if (!client) return { items: [], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 };
+
+    // return this.salonService.getAppointmentsPaginated(this.pageRequest(), client.id);
+    return {
+      items: [
+        {
+          id: '1',
+          date: new Date(),
+          startTime: '10:00',
+          endTime: '11:00',
+          totalPrice: 100,
+          totalDurationMinutes: 60,
+          status: AppointmentStatus.PENDING,
+          serviceIds: ['1'],
+          parsedServiceNames: ['Service 1'],
+          clientName: 'Client 1'
+        }
+      ], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10
+    };
   });
 
   isModalOpen = signal(false);
@@ -45,12 +60,11 @@ export class ClientAppointmentsComponent {
   editingAppointmentId = signal<string | undefined>(undefined);
 
   userName = computed(() => this.authService.getUser()()?.name || 'Cliente');
-  
-  services = signal<Service[]>(this.salonService.getServices());
+
   AppointmentStatus = AppointmentStatus;
 
-  getServiceNames(ids: string[]) {
-    return ids.map(id => this.services().find(s => s.id === id)?.name).filter(n => !!n).join(', ');
+  getServiceNames(app: any) {
+    return app.parsedServiceNames ? app.parsedServiceNames.join(', ') : '';
   }
 
   confirmCancel(id: string) {
@@ -64,10 +78,10 @@ export class ClientAppointmentsComponent {
   async executeCancel() {
     const id = this.cancelingAppointmentId();
     if (id) {
-      const appointment = this.salonService.getAppointments().find(a => a.id === id);
-      if (appointment) {
-        await this.salonService.updateAppointment({ ...appointment, status: AppointmentStatus.CANCELLED });
-      }
+      // const appointment = this.salonService.getAppointments().find(a => a.id === id);
+      // if (appointment) {
+      //   await this.salonService.updateAppointment({ ...appointment, status: AppointmentStatus.CANCELLED });
+      // }
       this.cancelingAppointmentId.set(undefined);
     }
   }

@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/services")
-@RequireRoles({ "ROLE_ROOT", "ROLE_ADMIN" })
+@RequireRoles({ "ROOT", "ADMIN" })
 public class CatalogController {
 
     private final CatalogService catalogService;

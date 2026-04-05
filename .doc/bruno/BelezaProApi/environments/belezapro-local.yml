@@ -1,0 +1,8 @@
+name: belezapro-local
+variables:
+  - name: token
+    value: ""
+  - name: belezapro-api
+    value: http://localhost:8080
+  - name: professional-id
+    value: 69d15f3d1a5c5893d5c40632

@@ -1,0 +1,28 @@
+info:
+  name: api/v1/schedule/config
+  type: http
+  seq: 13
+
+http:
+  method: PUT
+  url: "{{belezapro-api}}/api/v1/schedule/config"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+
+body:json:
+  [
+  {
+    "dayOfWeek": 1,
+    "startTime": "09:00",
+    "endTime": "18:00",
+    "isClosed": false
+  }
+]
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

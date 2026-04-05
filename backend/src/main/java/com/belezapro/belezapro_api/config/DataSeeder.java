@@ -1,5 +1,7 @@
 package com.belezapro.belezapro_api.config;
 
+import com.belezapro.belezapro_api.features.companies.models.Company;
+import com.belezapro.belezapro_api.features.companies.repositories.CompanyRepository;
 import com.belezapro.belezapro_api.features.users.models.Role;
 import com.belezapro.belezapro_api.features.users.models.User;
 import com.belezapro.belezapro_api.features.users.repositories.UserRepository;
@@ -23,23 +25,42 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final ServiceItemRepository serviceItemRepository;
     private final ScheduleConfigRepository scheduleConfigRepository;
+    private final CompanyRepository companyRepository;
 
     public DataSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder,
                       ServiceItemRepository serviceItemRepository,
-                      ScheduleConfigRepository scheduleConfigRepository) {
+                      ScheduleConfigRepository scheduleConfigRepository,
+                      CompanyRepository companyRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.serviceItemRepository = serviceItemRepository;
         this.scheduleConfigRepository = scheduleConfigRepository;
+        this.companyRepository = companyRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.count() == 0) {
+            
+            Company defaultCompany = null;
+            if (companyRepository.count() == 0) {
+                defaultCompany = Company.builder()
+                        .name("Cortes S/A")
+                        .document("12345678000199")
+                        .phone("44999999999")
+                        .isActive(true)
+                        .build();
+                defaultCompany = companyRepository.save(defaultCompany);
+                System.out.println("Empresa CORTES S/A (Company) seedada!");
+            } else {
+                defaultCompany = companyRepository.findAll().get(0);
+            }
+
             User root = User.builder()
                     .name("Dono do Sistema")
                     .email("root@belezapro.com")
                     .password(passwordEncoder.encode("root123"))
+                    .companyId(defaultCompany.getId())
                     .role(Role.ROOT)
                     .isBlocked(false)
                     .build();
@@ -51,6 +72,7 @@ public class DataSeeder implements CommandLineRunner {
                     .name("Admin Default")
                     .email("admin@belezapro.com")
                     .password(passwordEncoder.encode("admin123"))
+                    .companyId(defaultCompany.getId())
                     .role(Role.ADMIN)
                     .isBlocked(false)
                     .build();
@@ -82,6 +104,7 @@ public class DataSeeder implements CommandLineRunner {
                     .name("Admin Second")
                     .email("admin2@belezapro.com")
                     .password(passwordEncoder.encode("admin123"))
+                    .companyId(defaultCompany.getId())
                     .role(Role.ADMIN)
                     .isBlocked(false)
                     .build();

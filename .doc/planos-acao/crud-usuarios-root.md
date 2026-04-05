@@ -4,7 +4,7 @@
 Construir uma interface robusta centralizada para a pessoa dona do sistema (ROOT) poder realizar a gestão, bloqueio, e convite de outros administradores e clientes, integrando nosso frontend com o Backend rest Spring.
 
 ## 1. Backend (Java / Spring Boot)
-- **Segurança e Roles:** Criar a role `ROLE_ROOT` para o nível máximo. Proteger os Endpoints the `UserController` usando as anotações the controle the acesso (`@RequireRoles("ROLE_ROOT")`).
+- **Segurança e Roles:** Criar a role `ROOT` para o nível máximo. Proteger os Endpoints the `UserController` usando as anotações the controle the acesso (`@RequireRoles("ROOT")`).
 - **Endpoints the Gestão:**
   - `GET /api/users`: Listar todos os usuários da base the dados.
   - `POST /api/users`: Criar novos usuários (podendo assinalar se são ADMIN ou CLIENT's).

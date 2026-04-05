@@ -13,7 +13,7 @@ export class AppointmentService {
 
   getPaginatedList(request: PageRequest, clientId?: string, term?: string, startDate?: string, endDate?: string, status?: AppointmentStatus): Observable<PageResponse<Appointment>> {
     let params = new HttpParams()
-      .set('page', request.page.toString())
+      .set('page', (request.page - 1).toString())
       .set('size', request.pageSize.toString());
 
     if (clientId) params = params.set('clientId', clientId);

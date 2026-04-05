@@ -1,14 +1,15 @@
 import { Component, inject, signal, output, computed, effect, input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SalonService } from '../../../core/services/salon.service';
-import { AuthService } from '../../../core/services/auth.service';
+import { PublicBookingService } from '../../../core/services/public-booking.service';
+import { AppointmentService } from '../../../core/services/appointment.service';
 import { ScheduleCalculatorService } from '../../../core/services/schedule-calculator.service';
-import { Service, Appointment, AppointmentStatus, DayScheduleConfig } from '../../../core/models/salon.models';
+import { Service, Appointment, AppointmentStatus, DayScheduleConfig, Company, ProfessionalUser } from '../../../core/models/salon.models';
 import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray } from '@angular/forms';
 import { DurationFormatPipe } from '../../pipes/duration-format.pipe';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { EmailMaskDirective } from '../../directives/email-mask.directive';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-booking-form',
@@ -17,10 +18,12 @@ import { EmailMaskDirective } from '../../directives/email-mask.directive';
   templateUrl: './booking-form.html'
 })
 export class BookingFormComponent implements OnInit {
-  private salonService = inject(SalonService);
+  private publicBookingService = inject(PublicBookingService);
   private scheduleCalculator = inject(ScheduleCalculatorService);
   private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
+  
+  // Opcional para quando for usado na visão do admin para si mesmo
+  private appointmentService = inject(AppointmentService);
 
   finished = output<void>();
   preSelectedClientId = input<string>();
@@ -29,9 +32,16 @@ export class BookingFormComponent implements OnInit {
   prefillTime = input<string>();
   mode = input<'landing' | 'client' | 'admin'>('landing');
 
+  // Hierarchy
+  companies = signal<Company[]>([]);
+  professionals = signal<ProfessionalUser[]>([]);
+  
+  selectedCompanyId = signal<string>('');
+  selectedProfessionalId = signal<string>('');
+
   services = signal<Service[]>([]);
-  appointments = signal<Appointment[]>([]);
   scheduleConfigs = signal<DayScheduleConfig[]>([]);
+  busySlots = signal<Appointment[]>([]);
 
   bookingForm = this.fb.group({
     client: this.fb.group({
@@ -44,7 +54,6 @@ export class BookingFormComponent implements OnInit {
     time: ['', Validators.required]
   });
 
-  // Create a signal from form value changes for reactivity
   formValue = toSignal(this.bookingForm.valueChanges, { initialValue: this.bookingForm.value });
 
   totalDuration = computed(() => {
@@ -69,15 +78,19 @@ export class BookingFormComponent implements OnInit {
     const date = this.formValue()?.date;
     const duration = this.totalDuration();
 
-    // Basic validation for date format YYYY-MM-DD
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return [];
     }
+    
+    // Convert to Date to get weekDay
+    const dayOfWeek = new Date(date + 'T12:00:00').getDay();
+    const config = this.scheduleConfigs().find(c => c.dayOfWeek === dayOfWeek);
 
     return this.scheduleCalculator.getAvailableTimes(
       date,
       duration,
-      this.appointments(),
+      this.busySlots(),
+      config,
       this.editAppointmentId()
     );
   });
@@ -92,10 +105,6 @@ export class BookingFormComponent implements OnInit {
   });
 
   constructor() {
-    this.services.set(this.salonService.getServices().filter(s => s.isActive));
-    this.appointments.set(this.salonService.getAppointments());
-    this.scheduleConfigs.set(this.salonService.getScheduleConfigs());
-
     effect(() => {
       const times = this.availableTimes();
       const currentTime = this.bookingForm.get('time')?.value;
@@ -103,88 +112,56 @@ export class BookingFormComponent implements OnInit {
         this.bookingForm.get('time')?.setValue('', { emitEvent: false });
       }
     });
+    
+    // Auto fetch busy slots based on selected date
+    effect(() => {
+      const date = this.formValue()?.date;
+      const profId = this.selectedProfessionalId();
+      if(date && profId && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+         this.publicBookingService.getBusySlots(profId, date).subscribe(slots => {
+            this.busySlots.set(slots);
+         });
+      }
+    });
   }
 
   ngOnInit() {
-    const editId = this.editAppointmentId();
-    if (editId) {
-      const appointment = this.salonService.getAppointments().find(a => a.id === editId);
-      if (appointment) {
-        const client = this.salonService.clients().find(c => c.id === appointment.clientId);
-        if (client) {
-          this.bookingForm.patchValue({
-            client: {
-              name: client.name,
-              email: client.email,
-              phone: client.phone
-            },
-            date: appointment.date,
-            time: appointment.startTime
-          });
-          this.bookingForm.get('client')?.disable();
-        }
+    if (this.mode() === 'landing' || this.mode() === 'client') {
+      this.publicBookingService.getCompanies().subscribe(list => this.companies.set(list));
+    }
+    
+    const pDate = this.prefillDate();
+    if (pDate) this.bookingForm.patchValue({ date: pDate });
 
-        // Populate services
-        appointment.serviceIds.forEach(serviceId => {
-          this.selectedServicesArray.push(this.fb.control(serviceId));
-        });
+    const pTime = this.prefillTime();
+    if (pTime) this.bookingForm.patchValue({ time: pTime });
+  }
 
-        // Ensure the time is set correctly after services are populated
-        this.bookingForm.patchValue({ time: appointment.startTime });
-      }
+  onCompanySelect(event: Event) {
+    const id = (event.target as HTMLSelectElement).value;
+    this.selectedCompanyId.set(id);
+    this.selectedProfessionalId.set('');
+    this.services.set([]);
+    if (id) {
+      this.publicBookingService.getProfessionals(id).subscribe(p => this.professionals.set(p));
     } else {
-      const preSelectedId = this.preSelectedClientId();
-      if (preSelectedId) {
-        const client = this.salonService.clients().find(c => c.id === preSelectedId);
-        if (client) {
-          this.bookingForm.patchValue({
-            client: {
-              name: client.name,
-              email: client.email,
-              phone: client.phone
-            }
-          });
-          this.bookingForm.get('client')?.disable();
-        }
-      } else {
-        const user = this.authService.getUser()();
-        if (user && user.role === 'CLIENT' && user.email) {
-          const client = this.salonService.getClientByEmail(user.email);
-          if (client) {
-            this.bookingForm.patchValue({
-              client: {
-                name: client.name,
-                email: client.email,
-                phone: client.phone
-              }
-            });
-            this.bookingForm.get('client')?.disable();
-          } else {
-            this.bookingForm.patchValue({
-              client: {
-                email: user.email
-              }
-            });
-            this.bookingForm.get('client.email')?.disable();
-          }
-        }
-      }
+      this.professionals.set([]);
+    }
+  }
 
-      const pDate = this.prefillDate();
-      if (pDate) {
-        this.bookingForm.patchValue({ date: pDate });
-      }
-      const pTime = this.prefillTime();
-      if (pTime) {
-        this.bookingForm.patchValue({ time: pTime });
-      }
+  onProfessionalSelect(event: Event) {
+    const id = (event.target as HTMLSelectElement).value;
+    this.selectedProfessionalId.set(id);
+    if(id) {
+       this.publicBookingService.getServices(id).subscribe(s => this.services.set(s.filter(x => x.isActive)));
+       this.publicBookingService.getSchedule(id).subscribe(s => this.scheduleConfigs.set(s));
+    } else {
+       this.services.set([]);
     }
   }
 
   onDateInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    // Manual input can sometimes delay valueChanges emission in some browsers for type="date"
-    // Forcing the value update ensures the signal triggers immediately
     if (input.value && /^\d{4}-\d{2}-\d{2}$/.test(input.value)) {
       this.bookingForm.get('date')?.setValue(input.value, { emitEvent: true });
     }
@@ -221,62 +198,33 @@ export class BookingFormComponent implements OnInit {
 
   submit() {
     if (this.bookingForm.invalid) return;
-
     const val = this.bookingForm.getRawValue();
 
-    // 1. Handle Client
-    let client = this.salonService.getClientByEmail(val.client.email!);
+    if(this.mode() === 'landing' || this.mode() === 'client') {
+       if(!this.selectedProfessionalId()) {
+          alert("Selecione um profissional primeiro");
+          return;
+       }
+       const payload = {
+          client: val.client,
+          selectedServices: val.selectedServices,
+          date: val.date,
+          time: val.time
+       };
 
-    if (client?.isBlocked) {
-      alert('Não é possível realizar o agendamento. Por favor, entre em contato com o salão.');
-      return;
-    }
-
-    if (!client) {
-      client = {
-        id: crypto.randomUUID(),
-        name: val.client.name!,
-        email: val.client.email!,
-        phone: val.client.phone!
-      };
-      this.salonService.addClient(client);
-      this.authService.updateUserName(client.name);
-    }
-
-    // 2. Create or Update Appointment
-    const editId = this.editAppointmentId();
-    if (editId) {
-      const existingAppointment = this.salonService.getAppointments().find(a => a.id === editId);
-      if (existingAppointment) {
-        const updatedAppointment: Appointment = {
-          ...existingAppointment,
-          serviceIds: val.selectedServices as string[],
-          date: val.date!,
-          startTime: val.time!,
-          totalDurationMinutes: this.totalDuration(),
-          totalPrice: this.totalPrice()
-        };
-        this.salonService.updateAppointment(updatedAppointment);
-        alert('Agendamento atualizado com sucesso!');
-      }
+       this.publicBookingService.createAppointment(this.selectedProfessionalId(), payload).subscribe({
+         next: () => {
+            alert('Agendamento realizado com sucesso!');
+            this.finished.emit();
+            this.bookingForm.reset();
+         },
+         error: (err: HttpErrorResponse) => {
+            alert("Erro ao realizar agendamento: " + err.message);
+         }
+       });
     } else {
-      const appointment: Appointment = {
-        id: crypto.randomUUID(),
-        clientId: client.id,
-        serviceIds: val.selectedServices as string[],
-        date: val.date!,
-        startTime: val.time!,
-        totalDurationMinutes: this.totalDuration(),
-        totalPrice: this.totalPrice(),
-        status: AppointmentStatus.PENDING
-      };
-      this.salonService.addAppointment(appointment);
-      alert('Agendamento realizado com sucesso!');
+       alert("Funcionalidade Admin booking em desenvolvimento");
     }
-
-    this.appointments.set(this.salonService.getAppointments());
-    this.finished.emit();
-    this.bookingForm.reset();
   }
 
   getWhatsAppUrl() {

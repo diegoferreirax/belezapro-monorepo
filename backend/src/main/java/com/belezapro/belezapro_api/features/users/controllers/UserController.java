@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/users")
-@RequireRoles({ "ROLE_ROOT" })
+@RequireRoles({ "ROOT" })
 public class UserController {
 
     private final UserService userService;
