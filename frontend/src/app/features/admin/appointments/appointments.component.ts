@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppointmentService } from '../../../core/services/appointment.service';
+import { ScheduleService } from '../../../core/services/schedule.service';
 import { Appointment, AppointmentStatus } from '../../../core/models/salon.models';
 import { PageRequest, PageResponse } from '../../../core/models/pagination.models';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,6 +31,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 })
 export class AppointmentsComponent implements OnInit {
   private appointmentService = inject(AppointmentService);
+  private scheduleService = inject(ScheduleService);
 
   pageRequest = signal<PageRequest>({
     page: 1,
@@ -65,7 +67,8 @@ export class AppointmentsComponent implements OnInit {
   }
 
   ngOnInit() {
-    // loadAppointments is triggered by effect on pageRequest changes
+    this.scheduleService.loadConfigs();
+    this.scheduleService.loadOverrides();
   }
 
   loadAppointments() {

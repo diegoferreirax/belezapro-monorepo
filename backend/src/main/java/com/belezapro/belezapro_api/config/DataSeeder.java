@@ -108,14 +108,14 @@ public class DataSeeder implements CommandLineRunner {
                             ServiceItem.builder().name("Mão").price(new BigDecimal("35.0")).durationMinutes(180).isActive(true).adminId(mariaId).build(),
 
                             ServiceItem.builder().name("Corte Máquina").price(new BigDecimal("35.0")).durationMinutes(30).isActive(true).adminId(joaoId).build(),
-                            ServiceItem.builder().name("Corte Tesoura").price(new BigDecimal("45.0")).durationMinutes(45).isActive(true).adminId(joaoId).build(),
-                            ServiceItem.builder().name("Corte Degradê").price(new BigDecimal("55.0")).durationMinutes(50).isActive(true).adminId(joaoId).build(),
+                            ServiceItem.builder().name("Corte Tesoura").price(new BigDecimal("45.0")).durationMinutes(60).isActive(true).adminId(joaoId).build(),
+                            ServiceItem.builder().name("Corte Degradê").price(new BigDecimal("55.0")).durationMinutes(60).isActive(true).adminId(joaoId).build(),
                             ServiceItem.builder().name("Barba Simples").price(new BigDecimal("30.0")).durationMinutes(30).isActive(true).adminId(joaoId).build(),
-                            ServiceItem.builder().name("Barboterapia").price(new BigDecimal("50.0")).durationMinutes(45).isActive(true).adminId(joaoId).build(),
+                            ServiceItem.builder().name("Barboterapia").price(new BigDecimal("50.0")).durationMinutes(30).isActive(true).adminId(joaoId).build(),
                             ServiceItem.builder().name("Platinado / Luzes").price(new BigDecimal("120.0")).durationMinutes(120).isActive(true).adminId(joaoId).build(),
-                            ServiceItem.builder().name("Sobrancelha").price(new BigDecimal("15.0")).durationMinutes(15).isActive(true).adminId(joaoId).build(),
+                            ServiceItem.builder().name("Sobrancelha").price(new BigDecimal("15.0")).durationMinutes(30).isActive(true).adminId(joaoId).build(),
                             ServiceItem.builder().name("Hidratação Capilar").price(new BigDecimal("40.0")).durationMinutes(30).isActive(true).adminId(joaoId).build(),
-                            ServiceItem.builder().name("Pigmentação de Barba").price(new BigDecimal("45.0")).durationMinutes(40).isActive(true).adminId(joaoId).build()
+                            ServiceItem.builder().name("Pigmentação de Barba").price(new BigDecimal("45.0")).durationMinutes(240).isActive(true).adminId(joaoId).build()
                     );
 
                     serviceItemRepository.saveAll(initialServices);

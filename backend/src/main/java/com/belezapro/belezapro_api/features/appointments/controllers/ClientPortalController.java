@@ -2,6 +2,7 @@ package com.belezapro.belezapro_api.features.appointments.controllers;
 
 import com.belezapro.belezapro_api.features.appointments.models.Appointment;
 import com.belezapro.belezapro_api.features.appointments.models.AppointmentStatus;
+import com.belezapro.belezapro_api.features.appointments.models.ClientRescheduleRequest;
 import com.belezapro.belezapro_api.features.appointments.services.AppointmentService;
 import com.belezapro.belezapro_api.features.authentication.annotation.RequireRoles;
 import com.belezapro.belezapro_api.features.companies.models.Company;
@@ -76,5 +77,21 @@ public class ClientPortalController {
         return userRepository.findById(clientId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Appointment> rescheduleAppointment(
+            HttpServletRequest request,
+            @PathVariable String id,
+            @RequestBody ClientRescheduleRequest body
+    ) {
+        String clientId = getClientId(request);
+        return ResponseEntity.ok(appointmentService.rescheduleByClient(clientId, id, body));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<Appointment> cancelAppointment(HttpServletRequest request, @PathVariable String id) {
+        String clientId = getClientId(request);
+        return ResponseEntity.ok(appointmentService.cancelByClient(clientId, id));
     }
 }

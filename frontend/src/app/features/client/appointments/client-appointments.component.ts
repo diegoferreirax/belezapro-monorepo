@@ -1,8 +1,8 @@
 import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClientPortalService } from '../../../core/services/client-portal.service';
-import { AppointmentService } from '../../../core/services/appointment.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AppointmentStatus, AppointmentStatusLabels, Company, Appointment } from '../../../core/models/salon.models';
 import { PageRequest, PageResponse } from '../../../core/models/pagination.models';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,7 +22,6 @@ import { FormsModule } from '@angular/forms';
 export class ClientAppointmentsComponent implements OnInit {
   private clientPortalService = inject(ClientPortalService);
   private authService = inject(AuthService);
-  private appointmentService = inject(AppointmentService); // needed for generic cancels
 
   pageRequest = signal<PageRequest>({
     page: 1,
@@ -53,12 +52,7 @@ export class ClientAppointmentsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.clientPortalService.getCompaniesWithAppointments().subscribe({
-      next: (list) => {
-        this.companies.set(list);
-      },
-      error: () => console.error("Falha ao carregar empresas do cliente")
-    });
+    this.loadCompanies();
   }
 
   loadAppointments() {
@@ -91,30 +85,25 @@ export class ClientAppointmentsComponent implements OnInit {
     this.cancelingAppointmentId.set(undefined);
   }
 
-  async executeCancel() {
+  executeCancel() {
     const id = this.cancelingAppointmentId();
-    if (id) {
-      const app = this.paginatedData().items.find(a => a.id === id);
-      if (app) {
-        // Technically the client should be able to cancel, but the backend update method usually verifies adminId. 
-        // We'll need to make sure the general update supports clients cancelling their own, or use a specific endpoint.
-        // Wait, for now we will just use the general update assuming that it will be handled or might throw error if missing role.
-        // Oh actually the backend `update` method validates `adminId`.
-        // We might hit an error if we use `appointmentService.update`, so let's keep it minimal and just alert if failed.
-        this.appointmentService.update(id, { ...app, status: AppointmentStatus.CANCELLED }).subscribe({
-            next: () => {
-                this.loadAppointments();
-                this.cancelingAppointmentId.set(undefined);
-            },
-            error: () => {
-                alert("Erro ao tentar cancelar. Permissão negada ou não implementado pra CLIENTE no backend genérico ainda.");
-                this.cancelingAppointmentId.set(undefined);
-            }
-        });
-      } else {
+    if (!id) return;
+
+    this.clientPortalService.cancelAppointment(id).subscribe({
+      next: () => {
+        this.loadAppointments();
+        this.cancelingAppointmentId.set(undefined);
+      },
+      error: (err: HttpErrorResponse) => {
+        const body = err.error;
+        const detail =
+          typeof body === 'object' && body !== null && 'message' in body
+            ? String((body as { message: string }).message)
+            : err.message;
+        alert('Erro ao cancelar: ' + detail);
         this.cancelingAppointmentId.set(undefined);
       }
-    }
+    });
   }
 
   openBookingModal() {
@@ -134,6 +123,16 @@ export class ClientAppointmentsComponent implements OnInit {
   onBookingFinished() {
     this.isModalOpen.set(false);
     this.loadAppointments();
+    this.loadCompanies();
+  }
+
+  loadCompanies() {
+    this.clientPortalService.getCompaniesWithAppointments().subscribe({
+      next: (list) => {
+        this.companies.set(list);
+      },
+      error: () => console.error("Falha ao carregar empresas do cliente")
+    });
   }
 
   onSearch(term: string) {

@@ -75,6 +75,44 @@ export class ScheduleComponent implements OnInit {
     return startIndex >= 0 ? this.timeOptions.slice(startIndex + 1) : this.timeOptions;
   }
 
+  /** Apenas no dia corrente: opções de início do expediente não incluem horas já passadas. */
+  getAvailableStartTimes(config: DayScheduleConfig): string[] {
+    if (!this.isConfigForToday(config)) {
+      return this.timeOptions;
+    }
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const filtered = this.timeOptions.filter(t => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m >= nowMinutes;
+    });
+    return filtered.length > 0 ? filtered : this.timeOptions;
+  }
+
+  private getTodayDateStr(): string {
+    return new Date().toLocaleDateString('en-CA');
+  }
+
+  private isConfigForToday(config: DayScheduleConfig): boolean {
+    if (this.mode() === 'specific') {
+      return !!config.date && config.date === this.getTodayDateStr();
+    }
+    return config.dayOfWeek === new Date().getDay();
+  }
+
+  /** Se o início salvo ficou inválido para o dia atual (hora já passou), ajusta e recalcula o fim. */
+  private clampStartsForToday(): void {
+    for (const config of this.dayConfigs()) {
+      if (config.isClosed) continue;
+      const available = this.getAvailableStartTimes(config);
+      if (available.length === 0) continue;
+      if (!available.includes(config.startTime)) {
+        config.startTime = available[0];
+        this.onStartTimeChange(config);
+      }
+    }
+  }
+
   onStartTimeChange(config: DayScheduleConfig) {
     const validEndTimes = this.getAvailableEndTimes(config.startTime);
     if (config.endTime && !validEndTimes.includes(config.endTime)) {
@@ -135,6 +173,7 @@ export class ScheduleComponent implements OnInit {
       }
       this.dayConfigs.set(configs);
     }
+    this.clampStartsForToday();
   }
 
   saveConfigs() {

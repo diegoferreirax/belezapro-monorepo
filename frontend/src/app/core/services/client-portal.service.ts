@@ -40,4 +40,15 @@ export class ClientPortalService {
       }))
     );
   }
+
+  rescheduleAppointment(
+    id: string,
+    body: { serviceIds: string[]; date: string; startTime: string }
+  ): Observable<Appointment> {
+    return this.apiService.put<Appointment>(`/client-portal/appointments/${id}`, body);
+  }
+
+  cancelAppointment(id: string): Observable<Appointment> {
+    return this.apiService.patch<Appointment>(`/client-portal/appointments/${id}/cancel`, {});
+  }
 }

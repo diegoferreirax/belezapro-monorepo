@@ -5,7 +5,8 @@
       <h4 class="text-xs font-bold text-stone-400 uppercase tracking-widest">Onde deseja agendar?</h4>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <select (change)="onCompanySelect($event)"
+          <select [value]="selectedCompanyId()"
+                  (change)="onCompanySelect($event)"
                   class="w-full p-4 bg-white border border-stone-200 rounded-2xl focus:outline-none focus:border-stone-400 transition-colors">
             <option value="">Selecione o Salão/Empresa</option>
             @for (company of companies(); track company.id) {
@@ -14,7 +15,8 @@
           </select>
         </div>
         <div>
-          <select (change)="onProfessionalSelect($event)"
+          <select [value]="selectedProfessionalId()"
+                  (change)="onProfessionalSelect($event)"
                   [disabled]="!selectedCompanyId()"
                   class="w-full p-4 bg-white border border-stone-200 rounded-2xl focus:outline-none focus:border-stone-400 transition-colors disabled:opacity-50 disabled:bg-stone-50">
             <option value="">Selecione o Profissional</option>

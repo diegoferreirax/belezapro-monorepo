@@ -99,7 +99,7 @@
               (ngModelChange)="onStartTimeChange(config)"
               class="bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-pointer"
             >
-              @for (time of timeOptions; track time) {
+              @for (time of getAvailableStartTimes(config); track time) {
               <option [value]="time">{{ time }}</option>
               }
             </select>

@@ -24,6 +24,7 @@ public class JwtTokenService {
         return JWT.create()
                 .withSubject(user.getEmail())
                 .withClaim("userId", user.getId())
+                .withClaim("name", user.getName())
                 .withArrayClaim("roles", new String[]{role})
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 3600_000))

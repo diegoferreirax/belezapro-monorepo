@@ -1,0 +1,19 @@
+info:
+  name: api/v1/client-portal/appointments/{id}/cancel
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{belezapro-api}}/api/v1/client-portal/appointments/{{appointmentId}}/cancel"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+  json: {}
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

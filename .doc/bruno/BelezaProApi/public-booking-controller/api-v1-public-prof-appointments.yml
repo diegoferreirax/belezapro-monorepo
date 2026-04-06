@@ -11,7 +11,7 @@ http:
     data: |-
       {
         "client": {
-          "name": "diego",
+          "name": "admin",
           "email": "admin@belezapro.com",
           "phone": "55111155151"
         },

@@ -36,7 +36,7 @@ export class AuthService {
           this.currentUser.set({
             id: decoded.userId,
             role: rawRole as UserRole,
-            name: decoded.sub || 'Usuário',
+            name: decoded.name || decoded.sub || 'Usuário',
             email: decoded.sub
           });
         } catch (e) {

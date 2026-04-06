@@ -134,7 +134,7 @@ agora temos um mongo DB configurado. precisamos ajustar o fluxo dos 2 endpoints 
 
 Criei um documento de Plano de Implementação explicando passo a passo como vamos arquitetar essa conexão com o MongoDB mantendo as responsabilidades bem separadas.
 
-Dê uma lida no artefato **implementation_plan** criado. Tem [3 perguntas abertas](file:///C:/Users/diego/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md#L45-L49) ali no final sobre o hash de senhas, a mudança do campo `username` para `email`, e sobre criarmos um `DataSeeder` de testes iniciais. 
+Dê uma lida no artefato **implementation_plan** criado. Tem [3 perguntas abertas](/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md#L45-L49) ali no final sobre o hash de senhas, a mudança do campo `username` para `email`, e sobre criarmos um `DataSeeder` de testes iniciais. 
 
 Você aprova o plano para que eu possa iniciar o código? E o que acha das perguntas em aberto?
 
@@ -941,7 +941,7 @@ Isso vale a pena engolir agora em prol de segurança premium, ou você prefere d
 
 gostei desse plano. Antes de executar, salve esse plano em uma nova pasta na raiz do projeto chamada "planos-acao"
 
-*Viewed [implementation_plan.md](file:///C:/Users/diego/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md) *
+*Viewed [implementation_plan.md](/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md) *
 
 *Edited relevant file*
 
@@ -1058,7 +1058,7 @@ Atacamos em todas as frentes para viabilizar esse login dinâmico, descartável 
 ### Ação Imediata da Sua Parte
 1. Pare seu Runner Spring Boot para abaixar a injeção do `spring-mail` que chamei pelo Gradle. E levante/Re-rode sua API inteirinha para o Controller the "/request" nascer.
 2. Acesse a tela the Login The Cliente e tente enviar o e-mail via "Receber Código"!  
-3. A nossa camada `try/catch` de SMTP deve gerar falha muda the conexão se você não tiver MailHog The pé, mas irá cuspir em Vermelho / Ou Aviso the Debug o código no terminal da sua IDE Java para você pegar lá como teste (Ex: `LOG SEC (DEV MODO): Erro SMTP. Código OTP Local para diego@email.com é: 853049`).
+3. A nossa camada `try/catch` de SMTP deve gerar falha muda the conexão se você não tiver MailHog The pé, mas irá cuspir em Vermelho / Ou Aviso the Debug o código no terminal da sua IDE Java para você pegar lá como teste (Ex: `LOG SEC (DEV MODO): Erro SMTP. Código OTP Local para maria@email.com é: 853049`).
 
 Pronto para realizar esse mega teste na sua API e ver sua tela destravando seu cliente limpidamente pelo RxJS? Qualquer tela the bug que aparecer me retorne o aviso 🚀
 
@@ -2652,7 +2652,7 @@ Pronto! Analisei os recursos pendentes que ainda usam o `localStorage` no fronte
 1. Agendamentos (`Appointments`)
 2. Gestão Financeira (`Expenses`)
 
-Escrevi o nosso Plano de Implementação (você pode visualizá-lo e aprová-lo aqui: [implementation_plan.md](file:///C:/Users/diego/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md)) elegendo os `Appointments` como nossa prioridade total, por conta da forte dependência deles perante as funcionalidades do `Schedule` que nós migramos há pouco (a funcionalidade ainda aponta para o cache local do `SalonService` quando validamos agendamentos conflitantes no fechamento do dia).
+Escrevi o nosso Plano de Implementação (você pode visualizá-lo e aprová-lo aqui: [implementation_plan.md](/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md)) elegendo os `Appointments` como nossa prioridade total, por conta da forte dependência deles perante as funcionalidades do `Schedule` que nós migramos há pouco (a funcionalidade ainda aponta para o cache local do `SalonService` quando validamos agendamentos conflitantes no fechamento do dia).
 
 Por favor, analise a parte do "User Review Required" e me dê o 'OK' para que possamos iniciar a migração do módulo central de agendamentos para o nosso backend Java em Spring Boot!
 
@@ -2666,7 +2666,7 @@ tenho uma duvida nesse plano. Me explique mais como voce também pretende realiz
 
 Você tem total razão, foi um ótimo apontamento arquitetural! Pensar em carregar a base toda comprometeria demais a performance a longo prazo.
 
-Acabei de atualizar o [implementation_plan.md](file:///C:/Users/diego/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md) transformando a busca solta e burra em um Range Endpoint:
+Acabei de atualizar o [implementation_plan.md](/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md) transformando a busca solta e burra em um Range Endpoint:
 
 **Ao invés de:**
 `GET /api/v1/appointments/date/{date}`
@@ -2690,7 +2690,7 @@ Esse tipo de busca muda um pouco a nossa arquitetura no backend, mas para muito 
 
 Em um banco relacional nós faríamos alguns "JOINs" (ligar a tabela de agendamentos com as tabelas de Usuários e Serviços). Porém, como estamos utilizando **MongoDB** (um banco NoSQL focado em documentos), a melhor prática para realizar paginação e buscar vários termos textuais de forma rápida é aplicar a **Desnormalização de Dados**.
 
-Como isso reflete no nosso plano (você pode ver a alteração que fiz agora no [implementation_plan.md](file:///C:/Users/diego/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md)):
+Como isso reflete no nosso plano (você pode ver a alteração que fiz agora no [implementation_plan.md](/.gemini/antigravity/brain/7bf76a81-d855-4eab-8c9c-3aae53d367fd/implementation_plan.md)):
 1. A Model `Appointment.java` vai possuir duas propriedades a mais: `clientName` e `parsedServiceNames` (Uma lista com o nome dos serviços)
 2. Quando formos salvar um agendamento novo, o nosso serviço vai buscar o nome do cliente e dos serviços na base e "espelhar" os nomes string textuais dentro do próprio documento de Appointment.
 3. Além do endpoint do Calendário (que fizemos mais cedo), no nosso endpoint de paginação nós vamos adicionar a busca dinâmica via `MongoTemplate`. Ele poderá receber o parâmetro `term` (buscando por Regex no nome do cliente ou nos nomes dos serviços), `status` (buscando de forma exata) e ranges de Data.
@@ -2746,11 +2746,11 @@ Se no frontend nós precisamos mostrar o `"Nome do Cliente"` junto com o agendam
   "_id": "abc1234",
   "data": "2026-04-10",
   "clientId": "u890",
-  "clientName": "Diego Ferreira", // <- Desnormalização!
+  "clientName": "João", // <- Desnormalização!
   "parsedServiceNames": ["Corte", "Barba"] // <- Desnormalização!
 }
 ```
-Na hora da leitura, o MongoDB simplesmente pega o arquivo no disco do jeito que está pronto e joga diretamente pro seu frontend, sem precisar buscar nada em outra collection, tudo super rápido e em tempo `O(1)` e `O(N)`. E se o seu painel de tela enviar o termo "Diego" via input de busca, nós filtramos pelo campo `clientName` de forma veloz dentro do próprio Agendamento.
+Na hora da leitura, o MongoDB simplesmente pega o arquivo no disco do jeito que está pronto e joga diretamente pro seu frontend, sem precisar buscar nada em outra collection, tudo super rápido e em tempo `O(1)` e `O(N)`. E se o seu painel de tela enviar o termo "João" via input de busca, nós filtramos pelo campo `clientName` de forma veloz dentro do próprio Agendamento.
 
 ---
 

@@ -26,7 +26,7 @@ export class BookingFormComponent implements OnInit {
 
   // Opcional para quando for usado na visão do admin para si mesmo
   private appointmentService = inject(AppointmentService);
-  private clientPortalService = inject(ClientPortalService, { optional: true });
+  private clientPortalService = inject(ClientPortalService);
   private authService = inject(AuthService);
 
   finished = output<void>();
@@ -139,6 +139,30 @@ export class BookingFormComponent implements OnInit {
       }
     });
 
+    // Auto fetch Professionals when Company changes
+    effect(() => {
+      const id = this.selectedCompanyId();
+      if (id) {
+        this.publicBookingService.getProfessionals(id).subscribe(p => this.professionals.set(p));
+      } else {
+        this.professionals.set([]);
+      }
+    });
+
+    // Auto fetch Services/Schedule when Professional changes
+    effect(() => {
+      const id = this.selectedProfessionalId();
+      if (id) {
+        this.publicBookingService.getServices(id).subscribe(s => this.services.set(s.filter(x => x.isActive)));
+        this.publicBookingService.getSchedule(id).subscribe(s => this.scheduleConfigs.set(s));
+        this.publicBookingService.getScheduleOverrides(id).subscribe(s => this.scheduleOverrides.set(s));
+      } else {
+        this.services.set([]);
+        this.scheduleConfigs.set([]);
+        this.scheduleOverrides.set([]);
+      }
+    });
+
     // Auto-populate when editAppointment is provided
     effect(() => {
       const app = this.editAppointment();
@@ -158,9 +182,10 @@ export class BookingFormComponent implements OnInit {
           time: app.startTime
         }, { emitEvent: true });
 
-        // Ensure professional context is set if not in admin mode (where it's already set)
-        if (this.mode() !== 'admin' && app.adminId) {
-          this.selectedProfessionalId.set(app.adminId);
+        // Ensure professional/company context is set if not in admin mode (where it's already set)
+        if (this.mode() !== 'admin') {
+          if (app.companyId) this.selectedCompanyId.set(app.companyId);
+          if (app.adminId) this.selectedProfessionalId.set(app.adminId);
         }
       }
     });
@@ -189,9 +214,6 @@ export class BookingFormComponent implements OnInit {
       const me = this.authService.getUser()();
       if (me && me.id) {
         this.selectedProfessionalId.set(me.id);
-        this.publicBookingService.getServices(me.id).subscribe(s => this.services.set(s.filter(x => x.isActive)));
-        this.publicBookingService.getSchedule(me.id).subscribe(s => this.scheduleConfigs.set(s));
-        this.publicBookingService.getScheduleOverrides(me.id).subscribe(s => this.scheduleOverrides.set(s));
       }
     }
 
@@ -205,20 +227,18 @@ export class BookingFormComponent implements OnInit {
           }
         });
       }
-      if (this.clientPortalService) {
-        this.clientPortalService.getMe().subscribe({
-          next: (user: any) => {
-            this.bookingForm.patchValue({
-              client: {
-                name: user.name || me?.name || '',
-                email: user.email || me?.email || '',
-                phone: user.phone || ''
-              }
-            });
-          },
-          error: () => { }
-        });
-      }
+      this.clientPortalService.getMe().subscribe({
+        next: (user: any) => {
+          this.bookingForm.patchValue({
+            client: {
+              name: user.name || me?.name || '',
+              email: user.email || me?.email || '',
+              phone: user.phone || ''
+            }
+          });
+        },
+        error: () => { }
+      });
     }
 
     const pDate = this.prefillDate();
@@ -232,26 +252,11 @@ export class BookingFormComponent implements OnInit {
     const id = (event.target as HTMLSelectElement).value;
     this.selectedCompanyId.set(id);
     this.selectedProfessionalId.set('');
-    this.services.set([]);
-    if (id) {
-      this.publicBookingService.getProfessionals(id).subscribe(p => this.professionals.set(p));
-    } else {
-      this.professionals.set([]);
-    }
   }
 
   onProfessionalSelect(event: Event) {
     const id = (event.target as HTMLSelectElement).value;
     this.selectedProfessionalId.set(id);
-    if (id) {
-      this.publicBookingService.getServices(id).subscribe(s => this.services.set(s.filter(x => x.isActive)));
-      this.publicBookingService.getSchedule(id).subscribe(s => this.scheduleConfigs.set(s));
-      this.publicBookingService.getScheduleOverrides(id).subscribe(s => this.scheduleOverrides.set(s));
-    } else {
-      this.services.set([]);
-      this.scheduleConfigs.set([]);
-      this.scheduleOverrides.set([]);
-    }
   }
 
   onDateInput(event: Event) {
@@ -307,15 +312,38 @@ export class BookingFormComponent implements OnInit {
       };
 
       if (this.editAppointment()) {
-        const id = this.editAppointment()!.id;
-        // Optimization: if we have the editAppointment object, we might use a different endpoint or same
-        // For public mode, usually we only create. If we are editing, we probably need admin context.
-        // But if the user is in 'client' mode, they might be rescheduling.
-        alert("Edição no portal do cliente em desenvolvimento no backend");
+        if (this.mode() === 'client') {
+          this.clientPortalService
+            .rescheduleAppointment(this.editAppointment()!.id, {
+              serviceIds: val.selectedServices as string[],
+              date: val.date as string,
+              startTime: val.time as string
+            })
+            .subscribe({
+              next: () => {
+                alert('Agendamento reagendado com sucesso!');
+                this.finished.emit();
+                this.bookingForm.reset();
+              },
+              error: (err: HttpErrorResponse) => {
+                const body = err.error;
+                const detail =
+                  typeof body === 'object' && body !== null && 'message' in body
+                    ? String((body as { message: string }).message)
+                    : err.message;
+                alert('Erro ao reagendar: ' + detail);
+              }
+            });
+        } else {
+          alert('Edição não disponível neste fluxo.');
+        }
       } else {
         this.publicBookingService.createAppointment(this.selectedProfessionalId(), payload).subscribe({
           next: () => {
             alert('Agendamento realizado com sucesso!');
+            if (val.client.name) {
+              this.authService.updateUserName(val.client.name);
+            }
             this.finished.emit();
             this.bookingForm.reset();
           },
@@ -327,7 +355,6 @@ export class BookingFormComponent implements OnInit {
     } else {
       // Admin Mode
       const editApp = this.editAppointment();
-      console.log(editApp);
       if (editApp) {
         const appointmentData: Appointment = {
           ...editApp,

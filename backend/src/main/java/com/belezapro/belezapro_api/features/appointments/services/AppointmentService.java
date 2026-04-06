@@ -2,6 +2,7 @@ package com.belezapro.belezapro_api.features.appointments.services;
 
 import com.belezapro.belezapro_api.features.appointments.models.Appointment;
 import com.belezapro.belezapro_api.features.appointments.models.AppointmentStatus;
+import com.belezapro.belezapro_api.features.appointments.models.ClientRescheduleRequest;
 import com.belezapro.belezapro_api.features.appointments.repositories.AppointmentRepository;
 import com.belezapro.belezapro_api.features.clients.models.ClientAdminLink;
 import com.belezapro.belezapro_api.features.clients.repositories.ClientAdminLinkRepository;
@@ -11,10 +12,14 @@ import com.belezapro.belezapro_api.features.users.models.User;
 import com.belezapro.belezapro_api.features.users.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,6 +120,77 @@ public class AppointmentService {
         for (Appointment app : futures) {
             app.setStatus(AppointmentStatus.CANCELLED);
             appointmentRepository.save(app);
+        }
+    }
+
+    public Appointment rescheduleByClient(String clientId, String appointmentId, ClientRescheduleRequest req) {
+        if (req.getServiceIds() == null || req.getServiceIds().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecione ao menos um serviço.");
+        }
+        if (req.getDate() == null || req.getDate().isBlank() || req.getStartTime() == null || req.getStartTime().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data e horário são obrigatórios.");
+        }
+
+        Appointment existing = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado"));
+
+        if (!clientId.equals(existing.getClientId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado.");
+        }
+
+        if (existing.getStatus() == AppointmentStatus.CANCELLED || existing.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível reagendar este agendamento.");
+        }
+
+        if (isSlotInPast(existing.getDate(), existing.getStartTime())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível reagendar um horário que já passou.");
+        }
+
+        if (isSlotInPast(req.getDate(), req.getStartTime())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escolha uma data e horário futuros.");
+        }
+
+        String adminId = existing.getAdminId();
+        existing.setServiceIds(req.getServiceIds());
+        existing.setDate(req.getDate());
+        existing.setStartTime(req.getStartTime());
+
+        enrichAppointmentData(adminId, existing);
+
+        return appointmentRepository.save(existing);
+    }
+
+    public Appointment cancelByClient(String clientId, String appointmentId) {
+        Appointment existing = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado"));
+
+        if (!clientId.equals(existing.getClientId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado.");
+        }
+
+        if (existing.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Agendamento já cancelado.");
+        }
+
+        if (existing.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível cancelar um agendamento concluído.");
+        }
+
+        if (isSlotInPast(existing.getDate(), existing.getStartTime())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível cancelar um horário que já passou.");
+        }
+
+        existing.setStatus(AppointmentStatus.CANCELLED);
+        return appointmentRepository.save(existing);
+    }
+
+    private boolean isSlotInPast(String date, String startTime) {
+        try {
+            LocalDate d = LocalDate.parse(date);
+            LocalTime t = LocalTime.parse(startTime);
+            return LocalDateTime.of(d, t).isBefore(LocalDateTime.now());
+        } catch (Exception e) {
+            return true;
         }
     }
 
