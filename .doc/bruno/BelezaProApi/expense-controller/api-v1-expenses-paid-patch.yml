@@ -1,0 +1,20 @@
+info:
+  name: api/v1/expenses/{id}/paid
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{belezapro-api}}/api/v1/expenses/{{expenseId}}/paid"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+  json:
+    paid: true
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,54 +1,57 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { LocalStorageRepository } from '../repositories/local-storage.repository';
+import { HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { ApiService } from './api.service';
 import { Expense } from '../models/salon.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExpenseService {
-  private repository = inject(LocalStorageRepository);
-  private readonly STORAGE_KEY = 'salon_expenses';
+  private apiService = inject(ApiService);
 
   private expensesSignal = signal<Expense[]>([]);
   public readonly expenses = this.expensesSignal.asReadonly();
 
-  constructor() {
-    this.loadExpenses();
+  clearTenantCache(): void {
+    this.expensesSignal.set([]);
   }
 
-  private loadExpenses(): void {
-    const data = this.repository.get<Expense>(this.STORAGE_KEY);
-    this.expensesSignal.set(data);
+  loadExpenses(month: number, year: number): void {
+    const params = new HttpParams().set('month', month).set('year', year);
+    this.apiService.get<Expense[]>('/expenses', { params }).subscribe({
+      next: (data) =>
+        this.expensesSignal.set(
+          (data ?? []).map((row) => this.normalizeExpense(row as Expense & { paid?: boolean }))
+        ),
+      error: () => {
+        console.error('Erro ao carregar despesas.');
+        this.expensesSignal.set([]);
+      }
+    });
   }
 
-  getExpenses(): Expense[] {
-    return this.expensesSignal();
+  createExpense(body: Omit<Expense, 'id'>): Observable<Expense> {
+    return this.apiService.post<Expense>('/expenses', body);
   }
 
-  addExpense(expense: Omit<Expense, 'id'>): void {
-    const newExpense: Expense = {
-      ...expense,
-      id: crypto.randomUUID()
-    };
-    this.repository.add(this.STORAGE_KEY, newExpense);
-    this.loadExpenses();
+  updateExpense(expense: Expense): Observable<Expense> {
+    const { id, ...fields } = expense;
+    return this.apiService.put<Expense>(`/expenses/${id}`, fields);
   }
 
-  updateExpense(expense: Expense): void {
-    this.repository.update(this.STORAGE_KEY, expense);
-    this.loadExpenses();
+  deleteExpense(id: string): Observable<void> {
+    return this.apiService.delete<void>(`/expenses/${id}`);
   }
 
-  deleteExpense(id: string): void {
-    this.repository.delete(this.STORAGE_KEY, id);
-    this.loadExpenses();
+  setPaid(id: string, paid: boolean): Observable<Expense> {
+    return this.apiService.patch<Expense>(`/expenses/${id}/paid`, { paid });
   }
 
-  togglePaidStatus(id: string): void {
-    const expense = this.expensesSignal().find(e => e.id === id);
-    if (expense) {
-      this.updateExpense({ ...expense, isPaid: !expense.isPaid });
-    }
+  /** Jackson/Lombok às vezes enviam `paid` em vez de `isPaid` no JSON. */
+  private normalizeExpense(row: Expense & { paid?: boolean }): Expense {
+    const isPaid = row.isPaid === true || row.paid === true;
+    return { ...row, isPaid };
   }
 
   filterByMonth(month: number, year: number): Expense[] {
@@ -60,14 +63,17 @@ export class ExpenseService {
   }
 
   calculateTotals(expenses: Expense[]) {
-    return expenses.reduce((acc, curr) => {
-      acc.total += curr.amount;
-      if (curr.isPaid) {
-        acc.paid += curr.amount;
-      } else {
-        acc.pending += curr.amount;
-      }
-      return acc;
-    }, { total: 0, paid: 0, pending: 0 });
+    return expenses.reduce(
+      (acc, curr) => {
+        acc.total += curr.amount;
+        if (curr.isPaid) {
+          acc.paid += curr.amount;
+        } else {
+          acc.pending += curr.amount;
+        }
+        return acc;
+      },
+      { total: 0, paid: 0, pending: 0 }
+    );
   }
 }

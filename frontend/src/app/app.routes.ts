@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './core/guards/admin.guard';
 import { clientGuard } from './core/guards/client.guard';
+import { bookingCompaniesResolver } from './core/resolvers/booking-companies.resolver';
 
 import { rootGuard } from './core/guards/root.guard';
 
@@ -15,6 +16,7 @@ export const routes: Routes = [
   },
   {
     path: 'booking',
+    resolve: { companies: bookingCompaniesResolver },
     loadComponent: () => import('./features/public/landing/booking-page.component').then(m => m.BookingPageComponent)
   },
   {

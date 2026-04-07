@@ -5,23 +5,23 @@
       <h4 class="text-xs font-bold text-stone-400 uppercase tracking-widest">Onde deseja agendar?</h4>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <select [value]="selectedCompanyId()"
+          <select
                   (change)="onCompanySelect($event)"
                   class="w-full p-4 bg-white border border-stone-200 rounded-2xl focus:outline-none focus:border-stone-400 transition-colors">
-            <option value="">Selecione o Salão/Empresa</option>
+            <option value="" [selected]="!selectedCompanyId()">Selecione o Salão/Empresa</option>
             @for (company of companies(); track company.id) {
-              <option [value]="company.id">{{ company.name }}</option>
+              <option [value]="company.id" [selected]="company.id === selectedCompanyId()">{{ company.name }}</option>
             }
           </select>
         </div>
         <div>
-          <select [value]="selectedProfessionalId()"
+          <select
                   (change)="onProfessionalSelect($event)"
                   [disabled]="!selectedCompanyId()"
                   class="w-full p-4 bg-white border border-stone-200 rounded-2xl focus:outline-none focus:border-stone-400 transition-colors disabled:opacity-50 disabled:bg-stone-50">
-            <option value="">Selecione o Profissional</option>
+            <option value="" [selected]="!selectedProfessionalId()">Selecione o Profissional</option>
             @for (prof of professionals(); track prof.id) {
-              <option [value]="prof.id">{{ prof.name }}</option>
+              <option [value]="prof.id" [selected]="prof.id === selectedProfessionalId()">{{ prof.name }}</option>
             }
           </select>
         </div>

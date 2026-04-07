@@ -16,6 +16,10 @@ export class ClientService {
     return this.apiService.get<Client[]>('/clients');
   }
 
+  clearTenantCache(): void {
+    this.clients.set([]);
+  }
+
   loadClients(): void {
     this.fetchClients().subscribe({
       next: (data: Client[]) => this.clients.set(data),
@@ -42,5 +46,9 @@ export class ClientService {
       switchMap(() => this.fetchClients()),
       tap((clients: Client[]) => this.clients.set(clients))
     );
+  }
+
+  ensureClient(data: Omit<Client, 'id' | 'isBlocked' | 'linkedAt'>): Observable<Client> {
+    return this.apiService.post<Client>('/clients', data);
   }
 }

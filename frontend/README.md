@@ -10,7 +10,7 @@ Sistema de agendamento para serviços de manicure, pedicure e podologia. Esta pa
 | **API REST** | Spring Boot 4, Java 21, JWT, e-mail | `backend/` |
 | **Banco** | MongoDB | `docker-compose.yml` na raiz do monorepo |
 
-O frontend consome a API (JSON). Em desenvolvimento, o backend expõe CORS para `http://localhost:4200` (veja `backend/src/main/resources/application.properties`).
+O frontend consome a API (JSON). Em desenvolvimento, o backend expõe CORS para `http://localhost:4200` (veja `backend/src/main/resources/application.properties`). A área **Financeiro / despesas** (admin) persiste em `GET|POST|PUT|DELETE|PATCH /api/v1/expenses` (escopo do profissional logado); dados antigos em `localStorage` (`salon_expenses`) não são migrados automaticamente.
 
 ## Stack deste projeto
 

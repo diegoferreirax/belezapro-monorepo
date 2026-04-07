@@ -1,6 +1,7 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { Expense, ExpenseCategory } from '../../../core/models/salon.models';
 import { ExpenseModalComponent } from './expense-modal/expense-modal';
@@ -37,17 +38,15 @@ export class ExpensesComponent {
 
   years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i);
 
-  filteredExpenses = computed(() => {
-    const allExpenses = this.expenseService.expenses();
-    const month = this.currentMonth();
-    const year = this.currentYear();
-    
-    return allExpenses.filter(expense => {
-      if (!expense.date) return false;
-      const [y, m] = expense.date.split('-').map(Number);
-      return m === month && y === year;
+  constructor() {
+    effect(() => {
+      const month = this.currentMonth();
+      const year = this.currentYear();
+      this.expenseService.loadExpenses(month, year);
     });
-  });
+  }
+
+  filteredExpenses = computed(() => this.expenseService.expenses());
 
   totals = computed(() => {
     return this.expenseService.calculateTotals(this.filteredExpenses());
@@ -72,21 +71,40 @@ export class ExpensesComponent {
     this.editingExpense.set(null);
   }
 
-  onSaveExpense(formValue: Omit<Expense, 'id'>) {
-    if (this.editingExpense()) {
-      this.expenseService.updateExpense({
-        ...this.editingExpense()!,
-        ...formValue
-      });
-    } else {
-      this.expenseService.addExpense(formValue);
-    }
+  private reloadList() {
+    this.expenseService.loadExpenses(this.currentMonth(), this.currentYear());
+  }
 
-    this.closeModal();
+  private httpErrorMessage(err: HttpErrorResponse): string {
+    const body = err.error;
+    if (typeof body === 'object' && body !== null && 'message' in body) {
+      return String((body as { message: string }).message);
+    }
+    return err.message;
+  }
+
+  onSaveExpense(formValue: Omit<Expense, 'id'>) {
+    const editing = this.editingExpense();
+    const req = editing
+      ? this.expenseService.updateExpense({ ...editing, ...formValue })
+      : this.expenseService.createExpense(formValue);
+
+    req.subscribe({
+      next: () => {
+        this.closeModal();
+        this.reloadList();
+      },
+      error: (err: HttpErrorResponse) => alert('Erro ao salvar despesa: ' + this.httpErrorMessage(err))
+    });
   }
 
   togglePaid(id: string) {
-    this.expenseService.togglePaidStatus(id);
+    const exp = this.expenseService.expenses().find(e => e.id === id);
+    if (!exp) return;
+    this.expenseService.setPaid(id, !exp.isPaid).subscribe({
+      next: () => this.reloadList(),
+      error: (err: HttpErrorResponse) => alert('Erro ao atualizar status: ' + this.httpErrorMessage(err))
+    });
   }
 
   openDeleteModal(expense: Expense) {
@@ -101,10 +119,14 @@ export class ExpensesComponent {
 
   confirmDelete() {
     const expense = this.expenseToDelete();
-    if (expense) {
-      this.expenseService.deleteExpense(expense.id);
-      this.closeDeleteModal();
-    }
+    if (!expense) return;
+    this.expenseService.deleteExpense(expense.id).subscribe({
+      next: () => {
+        this.closeDeleteModal();
+        this.reloadList();
+      },
+      error: (err: HttpErrorResponse) => alert('Erro ao excluir: ' + this.httpErrorMessage(err))
+    });
   }
 
   changeMonth(event: Event) {

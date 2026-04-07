@@ -64,4 +64,4 @@ Preferimos descrever os testes de forma clara e legível:
 O foco atual dos testes está na lógica de negócio crítica:
 - **`AppointmentCalendarComponent`**: Lógica de renderização de horários e posicionamento de agendamentos.
 - **`ScheduleCalculatorService`**: Cálculos de disponibilidade e conflitos de horários.
-- **`ExpenseService`**: Cálculos financeiros e persistência básica.
+- **`ExpenseService`**: Cálculos financeiros e chamadas HTTP (Vitest + `HttpTestingController`).

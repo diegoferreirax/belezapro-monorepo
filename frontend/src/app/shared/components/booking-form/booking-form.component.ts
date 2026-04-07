@@ -4,6 +4,7 @@ import { PublicBookingService } from '../../../core/services/public-booking.serv
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { ClientPortalService } from '../../../core/services/client-portal.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ClientService } from '../../../core/services/client.service';
 import { ScheduleCalculatorService } from '../../../core/services/schedule-calculator.service';
 import { Service, Appointment, AppointmentStatus, DayScheduleConfig, Company, ProfessionalUser, Client } from '../../../core/models/salon.models';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,10 +25,12 @@ export class BookingFormComponent implements OnInit {
   private scheduleCalculator = inject(ScheduleCalculatorService);
   private fb = inject(FormBuilder);
 
-  // Opcional para quando for usado na visão do admin para si mesmo
   private appointmentService = inject(AppointmentService);
   private clientPortalService = inject(ClientPortalService);
   private authService = inject(AuthService);
+  private clientDirectoryService = inject(ClientService);
+
+  private pendingLandingAdminProfessionalId: string | null = null;
 
   finished = output<void>();
   preSelectedClientId = input<string>();
@@ -36,8 +39,8 @@ export class BookingFormComponent implements OnInit {
   prefillDate = input<string>();
   prefillTime = input<string>();
   mode = input<'landing' | 'client' | 'admin'>('landing');
+  preloadedCompanies = input<Company[] | undefined>(undefined);
 
-  // Hierarchy
   companies = signal<Company[]>([]);
   professionals = signal<ProfessionalUser[]>([]);
 
@@ -88,13 +91,10 @@ export class BookingFormComponent implements OnInit {
       return [];
     }
 
-    // Convert to Date to get weekDay
     const dayOfWeek = new Date(date + 'T12:00:00').getDay();
 
-    // First check if there is a specific override for this date
     let config = this.scheduleOverrides().find(c => c.date === date);
 
-    // If no override, fallback to the standard day config
     if (!config) {
       config = this.scheduleConfigs().find(c => c.dayOfWeek === dayOfWeek);
     }
@@ -128,7 +128,6 @@ export class BookingFormComponent implements OnInit {
       }
     });
 
-    // Auto fetch busy slots based on selected date and profId (isolated from other form fields)
     effect(() => {
       const date = this.selectedDateStr();
       const profId = this.selectedProfessionalId();
@@ -139,17 +138,22 @@ export class BookingFormComponent implements OnInit {
       }
     });
 
-    // Auto fetch Professionals when Company changes
     effect(() => {
       const id = this.selectedCompanyId();
       if (id) {
-        this.publicBookingService.getProfessionals(id).subscribe(p => this.professionals.set(p));
+        this.publicBookingService.getProfessionals(id).subscribe((p) => {
+          this.professionals.set(p);
+          const pending = this.pendingLandingAdminProfessionalId;
+          if (pending !== null && p.some((x) => x.id === pending)) {
+            this.selectedProfessionalId.set(pending);
+            this.pendingLandingAdminProfessionalId = null;
+          }
+        });
       } else {
         this.professionals.set([]);
       }
     });
 
-    // Auto fetch Services/Schedule when Professional changes
     effect(() => {
       const id = this.selectedProfessionalId();
       if (id) {
@@ -163,15 +167,12 @@ export class BookingFormComponent implements OnInit {
       }
     });
 
-    // Auto-populate when editAppointment is provided
     effect(() => {
       const app = this.editAppointment();
       if (app) {
-        // Prepare FormArray for services
         this.selectedServicesArray.clear();
         app.serviceIds.forEach(id => this.selectedServicesArray.push(this.fb.control(id)));
 
-        // Patch other values
         this.bookingForm.patchValue({
           client: {
             name: app.clientName || '',
@@ -182,7 +183,6 @@ export class BookingFormComponent implements OnInit {
           time: app.startTime
         }, { emitEvent: true });
 
-        // Ensure professional/company context is set if not in admin mode (where it's already set)
         if (this.mode() !== 'admin') {
           if (app.companyId) this.selectedCompanyId.set(app.companyId);
           if (app.adminId) this.selectedProfessionalId.set(app.adminId);
@@ -190,7 +190,6 @@ export class BookingFormComponent implements OnInit {
       }
     });
 
-    // Auto-populate when selectedClient is provided (for new appointments)
     effect(() => {
       const client = this.selectedClient();
       if (client && !this.editAppointment()) {
@@ -206,8 +205,25 @@ export class BookingFormComponent implements OnInit {
   }
 
   ngOnInit() {
+    const applyAdminLandingPrefill = () => {
+      if (this.mode() !== 'landing' || !this.authService.isAdmin()) return;
+      const u = this.authService.getUser()();
+      if (!u?.id || !u.companyId) return;
+      this.pendingLandingAdminProfessionalId = u.id;
+      this.selectedCompanyId.set(u.companyId);
+    };
+
     if (this.mode() === 'landing' || this.mode() === 'client') {
-      this.publicBookingService.getCompanies().subscribe(list => this.companies.set(list));
+      const pre = this.preloadedCompanies();
+      if (pre !== undefined) {
+        this.companies.set(pre);
+        applyAdminLandingPrefill();
+      } else {
+        this.publicBookingService.getCompanies().subscribe((list) => {
+          this.companies.set(list);
+          applyAdminLandingPrefill();
+        });
+      }
     }
 
     if (this.mode() === 'admin') {
@@ -217,28 +233,17 @@ export class BookingFormComponent implements OnInit {
       }
     }
 
-    if (this.mode() === 'client') {
-      const me = this.authService.getUser()();
-      if (me) {
+    if (this.authService.isClient() && (this.mode() === 'landing' || this.mode() === 'client')) {
+      const jwtUser = this.authService.getUser()();
+      if (jwtUser) {
         this.bookingForm.patchValue({
           client: {
-            name: me.name || '',
-            email: me.email || ''
+            name: jwtUser.name || '',
+            email: jwtUser.email || '',
+            phone: jwtUser.phone || ''
           }
         });
       }
-      this.clientPortalService.getMe().subscribe({
-        next: (user: any) => {
-          this.bookingForm.patchValue({
-            client: {
-              name: user.name || me?.name || '',
-              email: user.email || me?.email || '',
-              phone: user.phone || ''
-            }
-          });
-        },
-        error: () => { }
-      });
     }
 
     const pDate = this.prefillDate();
@@ -250,6 +255,7 @@ export class BookingFormComponent implements OnInit {
 
   onCompanySelect(event: Event) {
     const id = (event.target as HTMLSelectElement).value;
+    this.pendingLandingAdminProfessionalId = null;
     this.selectedCompanyId.set(id);
     this.selectedProfessionalId.set('');
   }
@@ -353,7 +359,6 @@ export class BookingFormComponent implements OnInit {
         });
       }
     } else {
-      // Admin Mode
       const editApp = this.editAppointment();
       if (editApp) {
         const appointmentData: Appointment = {
@@ -371,27 +376,47 @@ export class BookingFormComponent implements OnInit {
           error: () => alert('Erro ao atualizar agendamento.')
         });
       } else {
-        const client = this.selectedClient();
-        if (!client) {
-          alert("Selecione um cliente para realizar o agendamento.");
-          return;
-        }
-
-        const appointmentData: any = {
-          clientId: client.id,
+        const appointmentPayload = (clientId: string) => ({
+          clientId,
           serviceIds: val.selectedServices as string[],
           date: val.date as string,
           startTime: val.time as string,
-          status: AppointmentStatus.CONFIRMED // Agendamentos feitos pelo admin já nascem confirmados
+          status: AppointmentStatus.CONFIRMED
+        });
+
+        const submitAppointment = (clientId: string) => {
+          this.appointmentService.create(appointmentPayload(clientId) as Appointment).subscribe({
+            next: () => {
+              alert('Agendamento criado com sucesso!');
+              this.finished.emit();
+            },
+            error: (err) => alert('Erro ao criar agendamento: ' + err.message)
+          });
         };
 
-        this.appointmentService.create(appointmentData).subscribe({
-          next: () => {
-            alert('Agendamento criado com sucesso!');
-            this.finished.emit();
-          },
-          error: (err) => alert('Erro ao criar agendamento: ' + err.message)
-        });
+        const selected = this.selectedClient();
+        if (selected) {
+          submitAppointment(selected.id);
+        } else {
+          const c = val.client;
+          this.clientDirectoryService
+            .ensureClient({
+              name: c.name ?? '',
+              email: c.email ?? '',
+              phone: c.phone ?? ''
+            })
+            .subscribe({
+              next: (created) => submitAppointment(created.id),
+              error: (err: HttpErrorResponse) => {
+                const body = err.error;
+                const detail =
+                  typeof body === 'object' && body !== null && 'message' in body
+                    ? String((body as { message: string }).message)
+                    : err.message;
+                alert('Não foi possível salvar o cliente: ' + detail);
+              }
+            });
+        }
       }
     }
   }

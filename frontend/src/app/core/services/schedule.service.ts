@@ -21,6 +21,11 @@ export class ScheduleService {
   configs = signal<DayScheduleConfig[]>([]);
   overrides = signal<Record<string, DayScheduleConfig>>({});
 
+  clearTenantCache(): void {
+    this.configs.set([]);
+    this.overrides.set({});
+  }
+
   loadConfigs(): void {
     this.apiService.get<DayScheduleConfig[]>('/schedule/config').subscribe({
       next: (data) => this.configs.set(data),

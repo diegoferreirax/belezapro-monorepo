@@ -11,16 +11,13 @@ export class SalonService {
   // Signals for reactivity
   services = signal<Service[]>([]);
 
-  constructor() {
-    this.refreshSignals();
-  }
-
-  private refreshSignals() {
-    this.loadServices();
-  }
-
   // Services — integrado com a API REST
   getServices() { return this.services(); }
+
+  /** Limpa cache em memória (logout / novo login). */
+  clearTenantCache(): void {
+    this.services.set([]);
+  }
 
   loadServices() {
     this.apiService.get<Service[]>('/services').subscribe({

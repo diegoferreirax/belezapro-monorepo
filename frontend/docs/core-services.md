@@ -29,8 +29,8 @@ Gestão de identidade e segurança.
 ### 4. `ExpenseService`
 Controle financeiro do salão.
 - **Responsabilidades:**
-  - Registro e categorização de despesas.
-  - Cálculo de totais e relatórios básicos.
+  - CRUD e status pago/pendente via API (`/api/v1/expenses`), com filtro por mês/ano no servidor.
+  - Cálculo de totais a partir da lista carregada (`calculateTotals`).
 
 ---
 
