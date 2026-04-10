@@ -93,6 +93,12 @@ export class ScheduleComponent implements OnInit {
     return new Date().toLocaleDateString('en-CA');
   }
 
+  isPastConfig(config: DayScheduleConfig): boolean {
+    if (this.mode() !== 'specific') return false;
+    if (!config.date) return false;
+    return config.date < this.getTodayDateStr();
+  }
+
   private isConfigForToday(config: DayScheduleConfig): boolean {
     if (this.mode() === 'specific') {
       return !!config.date && config.date === this.getTodayDateStr();
@@ -114,17 +120,41 @@ export class ScheduleComponent implements OnInit {
   }
 
   onStartTimeChange(config: DayScheduleConfig) {
+    if (this.isPastConfig(config)) return;
     const validEndTimes = this.getAvailableEndTimes(config.startTime);
     if (config.endTime && !validEndTimes.includes(config.endTime)) {
       config.endTime = validEndTimes.length > 0 ? validEndTimes[0] : config.startTime;
     }
   }
 
-  onBreakStartTimeChange(brk: { start: string, end: string }) {
+  onBreakStartTimeChange(config: DayScheduleConfig, brk: { start: string, end: string }) {
+    if (this.isPastConfig(config)) return;
     const validEndTimes = this.getAvailableEndTimes(brk.start);
     if (brk.end && !validEndTimes.includes(brk.end)) {
       brk.end = validEndTimes.length > 0 ? validEndTimes[0] : brk.start;
     }
+  }
+
+  private timeToMinutes(time: string): number {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  private minutesToTime(totalMinutes: number): string {
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  }
+
+  private getNextFullHourStartMinutes(): number {
+    const now = new Date();
+    const d = new Date(now);
+    d.setMinutes(0, 0, 0);
+    d.setMilliseconds(0);
+    if (d.getTime() <= now.getTime()) {
+      d.setHours(d.getHours() + 1);
+    }
+    return d.getHours() * 60 + d.getMinutes();
   }
 
   private getStartOfWeek(date: Date): Date {
@@ -272,10 +302,28 @@ export class ScheduleComponent implements OnInit {
   }
 
   addBreak(config: DayScheduleConfig) {
-    config.breaks.push({ start: '12:00', end: '13:00' });
+    if (this.isPastConfig(config)) return;
+
+    const dayStart = this.timeToMinutes(config.startTime);
+    const dayEnd = this.timeToMinutes(config.endTime);
+    let startMin = Math.max(this.getNextFullHourStartMinutes(), dayStart);
+    let endMin = Math.min(startMin + 60, dayEnd);
+
+    if (endMin <= startMin) {
+      startMin = dayStart;
+      endMin = Math.min(dayStart + 60, dayEnd);
+      if (endMin <= startMin) {
+        endMin = Math.min(dayStart + 30, dayEnd);
+      }
+    }
+
+    const brk = { start: this.minutesToTime(startMin), end: this.minutesToTime(endMin) };
+    config.breaks.push(brk);
+    this.onBreakStartTimeChange(config, brk);
   }
 
   removeBreak(config: DayScheduleConfig, index: number) {
+    if (this.isPastConfig(config)) return;
     config.breaks.splice(index, 1);
   }
 

@@ -76,12 +76,13 @@
               <input
                 type="checkbox"
                 [(ngModel)]="config.isClosed"
+                [disabled]="isPastConfig(config)"
                 [id]="'closed-' + config.dayOfWeek"
                 class="w-4 h-4 accent-stone-800"
               />
               <label
                 [for]="'closed-' + config.dayOfWeek"
-                class="text-xs text-stone-400 uppercase tracking-wider cursor-pointer"
+                [class]="isPastConfig(config) ? 'text-xs text-stone-400 uppercase tracking-wider cursor-not-allowed opacity-60' : 'text-xs text-stone-400 uppercase tracking-wider cursor-pointer'"
                 >Fechado</label
               >
             </div>
@@ -89,7 +90,10 @@
         </div>
 
         @if (!config.isClosed) {
-        <div class="flex items-center gap-3 bg-stone-50 p-2 rounded-2xl">
+        <div
+          class="flex items-center gap-3 bg-stone-50 p-2 rounded-2xl"
+          [class.opacity-60]="isPastConfig(config)"
+        >
           <div class="flex flex-col">
             <span class="text-[10px] text-stone-400 uppercase font-bold px-2"
               >Início</span
@@ -97,7 +101,8 @@
             <select
               [(ngModel)]="config.startTime"
               (ngModelChange)="onStartTimeChange(config)"
-              class="bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-pointer"
+              [disabled]="isPastConfig(config)"
+              [class]="isPastConfig(config) ? 'bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-not-allowed' : 'bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-pointer'"
             >
               @for (time of getAvailableStartTimes(config); track time) {
               <option [value]="time">{{ time }}</option>
@@ -111,7 +116,8 @@
             >
             <select
               [(ngModel)]="config.endTime"
-              class="bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-pointer"
+              [disabled]="isPastConfig(config)"
+              [class]="isPastConfig(config) ? 'bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-not-allowed' : 'bg-transparent border-none focus:ring-0 text-stone-700 font-medium cursor-pointer'"
             >
               @for (time of getAvailableEndTimes(config.startTime); track time)
               {
@@ -133,7 +139,8 @@
           </h4>
           <button
             (click)="addBreak(config)"
-            class="text-xs text-stone-600 hover:text-stone-900 flex items-center gap-1"
+            [disabled]="isPastConfig(config)"
+            class="text-xs text-stone-600 hover:text-stone-900 flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-stone-600"
           >
             <mat-icon class="text-sm">add</mat-icon> Adicionar
           </button>
@@ -143,11 +150,13 @@
           @for (brk of config.breaks; track $index) {
           <div
             class="flex items-center gap-2 bg-stone-50 pl-3 pr-1 py-1 rounded-xl border border-stone-100"
+            [class.opacity-60]="isPastConfig(config)"
           >
             <select
               [(ngModel)]="brk.start"
-              (ngModelChange)="onBreakStartTimeChange(brk)"
-              class="bg-transparent border-none p-0 text-sm w-[72px] focus:ring-0 cursor-pointer"
+              (ngModelChange)="onBreakStartTimeChange(config, brk)"
+              [disabled]="isPastConfig(config)"
+              [class]="isPastConfig(config) ? 'bg-transparent border-none p-0 text-sm w-[72px] focus:ring-0 cursor-not-allowed' : 'bg-transparent border-none p-0 text-sm w-[72px] focus:ring-0 cursor-pointer'"
             >
               @for (time of timeOptions; track time) {
               <option [value]="time">{{ time }}</option>
@@ -156,7 +165,8 @@
             <span class="text-stone-300">→</span>
             <select
               [(ngModel)]="brk.end"
-              class="bg-transparent border-none p-0 text-sm w-[72px] focus:ring-0 cursor-pointer"
+              [disabled]="isPastConfig(config)"
+              [class]="isPastConfig(config) ? 'bg-transparent border-none p-0 text-sm w-[72px] focus:ring-0 cursor-not-allowed' : 'bg-transparent border-none p-0 text-sm w-[72px] focus:ring-0 cursor-pointer'"
             >
               @for (time of getAvailableEndTimes(brk.start); track time) {
               <option [value]="time">{{ time }}</option>
@@ -164,7 +174,8 @@
             </select>
             <button
               (click)="removeBreak(config, $index)"
-              class="p-1 text-stone-300 hover:text-rose-500 transition-colors"
+              [disabled]="isPastConfig(config)"
+              class="p-1 text-stone-300 hover:text-rose-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-stone-300"
             >
               <mat-icon class="text-lg">cancel</mat-icon>
             </button>

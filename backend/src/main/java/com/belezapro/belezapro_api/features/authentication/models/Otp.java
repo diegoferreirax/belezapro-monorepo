@@ -22,7 +22,6 @@ public class Otp {
     private String email;
     private String code;
     
-    // Deleta o registro automaticamente quando o tempo base + os segundos (0) passam.
-    @Indexed(name = "expire_at_index", expireAfterSeconds = 0)
+    @Indexed(name = "expire_at_index")
     private Instant expireAt;
 }

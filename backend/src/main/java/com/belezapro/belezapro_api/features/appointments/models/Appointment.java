@@ -1,10 +1,7 @@
 package com.belezapro.belezapro_api.features.appointments.models;
 
 import com.belezapro.belezapro_api.common.models.Auditable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -13,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,18 +30,20 @@ public class Appointment extends Auditable {
     @Indexed
     private String clientId;
 
-    private String clientName; // Desnormalizado para pesquisas textuais mais rapidas
+    private String clientName;
     private String clientEmail;
     private String clientPhone;
 
+    @Builder.Default
     private List<String> serviceIds = new ArrayList<>();
 
-    private List<String> parsedServiceNames = new ArrayList<>(); // Desnormalizado para pesquisas textuais e snapshot
+    @Builder.Default
+    private List<String> parsedServiceNames = new ArrayList<>();
 
     @Indexed
-    private String date; // YYYY-MM-DD
+    private String date;
 
-    private String startTime; // HH:mm
+    private String startTime;
 
     private Integer totalDurationMinutes;
 

@@ -7,15 +7,12 @@ import com.belezapro.belezapro_api.features.users.models.User;
 import com.belezapro.belezapro_api.features.users.repositories.UserRepository;
 import com.belezapro.belezapro_api.features.services.models.ServiceItem;
 import com.belezapro.belezapro_api.features.services.repositories.ServiceItemRepository;
-import com.belezapro.belezapro_api.features.schedule.models.ScheduleConfig;
-import com.belezapro.belezapro_api.features.schedule.repositories.ScheduleConfigRepository;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -24,26 +21,23 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ServiceItemRepository serviceItemRepository;
-    private final ScheduleConfigRepository scheduleConfigRepository;
     private final CompanyRepository companyRepository;
 
     public DataSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder,
                       ServiceItemRepository serviceItemRepository,
-                      ScheduleConfigRepository scheduleConfigRepository,
                       CompanyRepository companyRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.serviceItemRepository = serviceItemRepository;
-        this.scheduleConfigRepository = scheduleConfigRepository;
         this.companyRepository = companyRepository;
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         if (userRepository.count() == 0) {
             
             Company mariasSalon = null;
-            Company cortesSA = null;
+            Company cortesSA;
 
             if (companyRepository.count() == 0) {
 
@@ -134,23 +128,6 @@ public class DataSeeder implements CommandLineRunner {
 
             userRepository.save(root);
             System.out.println("Usuário ROOT seedado! Email: root@belezapro.com | Senha: root123");
-
-//            User primaryClient = User.builder()
-//                    .name("Primary Client")
-//                    .email("client@belezapro.com")
-//                    .role(Role.CLIENT)
-//                    .isBlocked(false)
-//                    .build();
-//
-//            User segundClient = User.builder()
-//                    .name("Segund Client")
-//                    .email("client2@belezapro.com")
-//                    .role(Role.CLIENT)
-//                    .isBlocked(false)
-//                    .build();
-//
-//            userRepository.saveAll(List.of(primaryClient, segundClient));
-//            System.out.println("Usuário CLIENT, CLIENT2 seedado! Email: client@belezapro.com | Senha: client123");
         }
     }
 }

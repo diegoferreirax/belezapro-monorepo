@@ -1,17 +1,66 @@
-<div class="min-h-screen flex flex-col">
-  <nav class="bg-stone-800 text-white p-4">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-serif italic">Área do Cliente</h1>
+<div
+  class="h-screen w-full bg-stone-50 flex flex-col md:flex-row overflow-hidden"
+>
+  @if (menu.menuOpen()) {
+    <div
+      class="fixed inset-0 z-40 bg-stone-900/40 md:hidden"
+      (click)="menu.closeMenu()"
+      (keydown.escape)="menu.closeMenu()"
+      aria-hidden="true"
+    ></div>
+  }
+
+  <button
+    type="button"
+    class="fixed top-4 left-4 z-[60] md:hidden flex items-center justify-center size-11 rounded-xl bg-white border border-stone-200 text-stone-700 shadow-sm"
+    (click)="menu.toggleMenu()"
+    [attr.aria-expanded]="menu.menuOpen()"
+    [attr.aria-label]="menu.menuOpen() ? 'Fechar menu' : 'Abrir menu'"
+  >
+    <mat-icon>{{ menu.menuOpen() ? 'close' : 'menu' }}</mat-icon>
+  </button>
+
+  <!-- Sidebar -->
+  <aside
+    class="w-64 max-w-[min(100vw,20rem)] shrink-0 bg-white border-r border-stone-200 flex flex-col overflow-y-auto md:overflow-visible
+      fixed md:static inset-y-0 left-0 z-50 md:z-auto
+      transform transition-transform duration-200 ease-out
+      md:translate-x-0 shadow-xl md:shadow-none"
+    [ngClass]="menu.menuOpen() ? 'translate-x-0' : '-translate-x-full'"
+  >
+    <div class="p-6 border-b border-stone-100 shrink-0">
+      <h1 class="text-xl font-serif italic text-stone-800">BelezaPro</h1>
+      <p class="text-xs text-stone-400 uppercase tracking-widest mt-1">
+        Área do Cliente
+      </p>
+    </div>
+
+    <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+      <a
+        routerLink="appointments"
+        routerLinkActive="bg-stone-100 text-stone-900"
+        class="flex items-center gap-3 p-3 rounded-xl text-stone-600 hover:bg-stone-50 transition-colors"
+        (click)="menu.closeMenu()"
+      >
+        <mat-icon>calendar_today</mat-icon>
+        <span>Agendamentos</span>
+      </a>
+    </nav>
+
+    <div class="p-4 border-t border-stone-100 shrink-0">
       <button
+        type="button"
         (click)="logout()"
-        class="flex items-center gap-2 hover:text-stone-300 transition-colors"
+        class="w-full flex items-center gap-3 p-3 rounded-xl text-stone-400 hover:text-red-600 transition-colors text-sm"
       >
         <mat-icon>logout</mat-icon>
         <span>Sair</span>
       </button>
     </div>
-  </nav>
-  <main class="flex-grow p-4">
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-4 pt-20 md:p-8 md:pt-8 overflow-y-auto">
     <router-outlet></router-outlet>
   </main>
 </div>

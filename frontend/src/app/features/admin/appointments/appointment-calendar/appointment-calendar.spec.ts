@@ -1,34 +1,33 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppointmentCalendarComponent } from './appointment-calendar';
-import { SalonService } from '../../../../core/services/salon.service';
 import { Appointment, AppointmentStatus, DayScheduleConfig } from '../../../../core/models/salon.models';
-import { signal, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { ScheduleService } from '../../../../core/services/schedule.service';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('AppointmentCalendarComponent', () => {
   let component: AppointmentCalendarComponent;
   let fixture: ComponentFixture<AppointmentCalendarComponent>;
-  let mockSalonService: { getScheduleForDate: ReturnType<typeof vi.fn>, scheduleConfigs: unknown };
+  let mockScheduleService: { getConfigForDate: ReturnType<typeof vi.fn> };
 
   const mockDate = new Date('2026-03-22T10:00:00'); // Sunday (0)
 
   beforeEach(async () => {
-    mockSalonService = {
-      getScheduleForDate: vi.fn().mockReturnValue({
+    mockScheduleService = {
+      getConfigForDate: vi.fn().mockReturnValue({
         dayOfWeek: 0,
         startTime: '08:00',
         endTime: '18:00',
         breaks: [],
         isClosed: false
-      }),
-      scheduleConfigs: signal<DayScheduleConfig[]>([])
+      })
     };
 
     await TestBed.configureTestingModule({
       providers: [
-        { provide: SalonService, useValue: mockSalonService }
+        { provide: ScheduleService, useValue: mockScheduleService }
       ]
     }).compileComponents();
 
@@ -208,7 +207,7 @@ describe('AppointmentCalendarComponent', () => {
         breaks: [],
         isClosed: false
       };
-      mockSalonService.getScheduleForDate.mockReturnValue(config);
+      mockScheduleService.getConfigForDate.mockReturnValue(config);
       
       // Force re-evaluation of computed signal
       fixture.componentRef.setInput('currentDate', new Date('2026-03-23T10:00:00'));
@@ -238,7 +237,7 @@ describe('AppointmentCalendarComponent', () => {
 
   describe('Blocos de Indisponibilidade (getUnavailableBlocksForDay)', () => {
     it('deve bloquear o dia inteiro se o salão estiver fechado', () => {
-      mockSalonService.getScheduleForDate.mockReturnValue({
+      mockScheduleService.getConfigForDate.mockReturnValue({
         dayOfWeek: 0,
         startTime: '08:00',
         endTime: '18:00',
@@ -254,7 +253,7 @@ describe('AppointmentCalendarComponent', () => {
     });
 
     it('deve gerar múltiplos blocos para múltiplos intervalos de pausa (breaks)', () => {
-      mockSalonService.getScheduleForDate.mockReturnValue({
+      mockScheduleService.getConfigForDate.mockReturnValue({
         dayOfWeek: 0,
         startTime: '08:00',
         endTime: '20:00',
@@ -285,7 +284,7 @@ describe('AppointmentCalendarComponent', () => {
     });
 
     it('deve gerar blocos de margem se o salão abrir mais tarde que o início do calendário', () => {
-      mockSalonService.getScheduleForDate.mockReturnValue({
+      mockScheduleService.getConfigForDate.mockReturnValue({
         dayOfWeek: 0,
         startTime: '10:00',
         endTime: '18:00',
