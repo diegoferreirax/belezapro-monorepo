@@ -1,7 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from './api.service';
-import { Company, ProfessionalUser, Service, DayScheduleConfig, Appointment } from '../models/salon.models';
+import { Company, ProfessionalUser, Service, Appointment } from '../models/salon.models';
 import { Observable } from 'rxjs';
+
+export interface AvailableTimesResponse {
+  slots: string[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -21,16 +25,23 @@ export class PublicBookingService {
     return this.apiService.get<Service[]>(`/public/professionals/${professionalId}/services`);
   }
 
-  getSchedule(professionalId: string): Observable<DayScheduleConfig[]> {
-    return this.apiService.get<DayScheduleConfig[]>(`/public/professionals/${professionalId}/schedule`);
-  }
-
-  getScheduleOverrides(professionalId: string): Observable<DayScheduleConfig[]> {
-    return this.apiService.get<DayScheduleConfig[]>(`/public/professionals/${professionalId}/schedule/overrides`);
-  }
-
-  getBusySlots(professionalId: string, date: string): Observable<Appointment[]> {
-    return this.apiService.get<Appointment[]>(`/public/professionals/${professionalId}/appointments/busy?date=${date}`);
+  getAvailableTimes(
+    professionalId: string,
+    date: string,
+    durationMinutes: number,
+    excludeAppointmentId?: string | null
+  ): Observable<AvailableTimesResponse> {
+    const params: Record<string, string> = {
+      date,
+      durationMinutes: String(durationMinutes)
+    };
+    if (excludeAppointmentId) {
+      params['excludeAppointmentId'] = excludeAppointmentId;
+    }
+    return this.apiService.get<AvailableTimesResponse>(
+      `/public/professionals/${professionalId}/available-times`,
+      { params }
+    );
   }
 
   createAppointment(professionalId: string, payload: any): Observable<Appointment> {

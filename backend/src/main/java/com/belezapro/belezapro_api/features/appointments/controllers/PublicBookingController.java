@@ -1,7 +1,9 @@
 package com.belezapro.belezapro_api.features.appointments.controllers;
 
 import com.belezapro.belezapro_api.features.appointments.models.Appointment;
+import com.belezapro.belezapro_api.features.appointments.models.AvailableTimesResponse;
 import com.belezapro.belezapro_api.features.appointments.services.AppointmentService;
+import com.belezapro.belezapro_api.features.appointments.services.AvailabilityService;
 import com.belezapro.belezapro_api.features.companies.models.Company;
 import com.belezapro.belezapro_api.features.companies.repositories.CompanyRepository;
 import com.belezapro.belezapro_api.features.schedule.models.ScheduleConfig;
@@ -26,17 +28,20 @@ public class PublicBookingController {
     private final CatalogService catalogService;
     private final ScheduleService scheduleService;
     private final AppointmentService appointmentService;
+    private final AvailabilityService availabilityService;
 
     public PublicBookingController(CompanyRepository companyRepository,
                                    UserRepository userRepository,
                                    CatalogService catalogService,
                                    ScheduleService scheduleService,
-                                   AppointmentService appointmentService) {
+                                   AppointmentService appointmentService,
+                                   AvailabilityService availabilityService) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
         this.catalogService = catalogService;
         this.scheduleService = scheduleService;
         this.appointmentService = appointmentService;
+        this.availabilityService = availabilityService;
     }
 
     @GetMapping("/companies")
@@ -129,6 +134,16 @@ public class PublicBookingController {
 
         return ResponseEntity.ok(appointmentService.create(professionalId, appointment));
     }
+    @GetMapping("/professionals/{professionalId}/available-times")
+    public ResponseEntity<AvailableTimesResponse> getAvailableTimes(
+        @PathVariable String professionalId,
+        @RequestParam String date,
+        @RequestParam int durationMinutes,
+        @RequestParam(required = false) String excludeAppointmentId) {
+        return ResponseEntity.ok(new AvailableTimesResponse(
+            availabilityService.getAvailableTimes(professionalId, date, durationMinutes, excludeAppointmentId)));
+    }
+
     @GetMapping("/professionals/{professionalId}/appointments/busy")
     public ResponseEntity<List<com.belezapro.belezapro_api.features.appointments.models.PublicBusySlot>> getBusySlots(@PathVariable String professionalId, @RequestParam String date) {
         List<Appointment> actives = appointmentService.getActiveByDate(professionalId, date);

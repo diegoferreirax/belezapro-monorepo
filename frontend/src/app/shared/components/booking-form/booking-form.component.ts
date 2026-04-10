@@ -5,14 +5,15 @@ import { AppointmentService } from '../../../core/services/appointment.service';
 import { ClientPortalService } from '../../../core/services/client-portal.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClientService } from '../../../core/services/client.service';
-import { ScheduleCalculatorService } from '../../../core/services/schedule-calculator.service';
-import { Service, Appointment, AppointmentStatus, DayScheduleConfig, Company, ProfessionalUser, Client } from '../../../core/models/salon.models';
+import { Service, Appointment, AppointmentStatus, Company, ProfessionalUser, Client } from '../../../core/models/salon.models';
 import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray } from '@angular/forms';
 import { DurationFormatPipe } from '../../pipes/duration-format.pipe';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { EmailMaskDirective } from '../../directives/email-mask.directive';
 import { HttpErrorResponse } from '@angular/common/http';
+import { combineLatest, of } from 'rxjs';
+import { switchMap, map, catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-booking-form',
@@ -22,7 +23,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class BookingFormComponent implements OnInit {
   private publicBookingService = inject(PublicBookingService);
-  private scheduleCalculator = inject(ScheduleCalculatorService);
   private fb = inject(FormBuilder);
 
   private appointmentService = inject(AppointmentService);
@@ -36,6 +36,7 @@ export class BookingFormComponent implements OnInit {
   preSelectedClientId = input<string>();
   selectedClient = input<Client | undefined>();
   editAppointment = input<Appointment | undefined>();
+  editAppointmentId = computed(() => this.editAppointment()?.id ?? null);
   prefillDate = input<string>();
   prefillTime = input<string>();
   mode = input<'landing' | 'client' | 'admin'>('landing');
@@ -48,9 +49,6 @@ export class BookingFormComponent implements OnInit {
   selectedProfessionalId = signal<string>('');
 
   services = signal<Service[]>([]);
-  scheduleConfigs = signal<DayScheduleConfig[]>([]);
-  scheduleOverrides = signal<DayScheduleConfig[]>([]);
-  busySlots = signal<Appointment[]>([]);
 
   bookingForm = this.fb.group({
     client: this.fb.group({
@@ -83,30 +81,7 @@ export class BookingFormComponent implements OnInit {
     }, 0);
   });
 
-  availableTimes = computed(() => {
-    const date = this.formValue()?.date;
-    const duration = this.totalDuration();
-
-    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return [];
-    }
-
-    const dayOfWeek = new Date(date + 'T12:00:00').getDay();
-
-    let config = this.scheduleOverrides().find(c => c.date === date);
-
-    if (!config) {
-      config = this.scheduleConfigs().find(c => c.dayOfWeek === dayOfWeek);
-    }
-
-    return this.scheduleCalculator.getAvailableTimes(
-      date,
-      duration,
-      this.busySlots(),
-      config,
-      this.editAppointment()?.id
-    );
-  });
+  availableTimes = signal<string[]>([]);
 
   isAdmin = computed(() => this.mode() === 'admin');
   isGuest = computed(() => this.mode() === 'landing');
@@ -128,15 +103,32 @@ export class BookingFormComponent implements OnInit {
       }
     });
 
-    effect(() => {
-      const date = this.selectedDateStr();
-      const profId = this.selectedProfessionalId();
-      if (date && profId && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        this.publicBookingService.getBusySlots(profId, date).subscribe(slots => {
-          this.busySlots.set(slots);
-        });
-      }
-    });
+    combineLatest({
+      professionalId: toObservable(this.selectedProfessionalId),
+      date: toObservable(this.selectedDateStr),
+      duration: toObservable(this.totalDuration),
+      excludeId: toObservable(this.editAppointmentId)
+    })
+      .pipe(
+        switchMap(({ professionalId, date, duration, excludeId }) => {
+          if (
+            !professionalId ||
+            !date ||
+            !/^\d{4}-\d{2}-\d{2}$/.test(String(date)) ||
+            duration <= 0
+          ) {
+            return of([] as string[]);
+          }
+          return this.publicBookingService
+            .getAvailableTimes(professionalId, String(date), duration, excludeId ?? undefined)
+            .pipe(
+              map((r) => r.slots),
+              catchError(() => of([] as string[]))
+            );
+        }),
+        takeUntilDestroyed()
+      )
+      .subscribe((slots) => this.availableTimes.set(slots));
 
     effect(() => {
       const id = this.selectedCompanyId();
@@ -158,12 +150,8 @@ export class BookingFormComponent implements OnInit {
       const id = this.selectedProfessionalId();
       if (id) {
         this.publicBookingService.getServices(id).subscribe(s => this.services.set(s.filter(x => x.isActive)));
-        this.publicBookingService.getSchedule(id).subscribe(s => this.scheduleConfigs.set(s));
-        this.publicBookingService.getScheduleOverrides(id).subscribe(s => this.scheduleOverrides.set(s));
       } else {
         this.services.set([]);
-        this.scheduleConfigs.set([]);
-        this.scheduleOverrides.set([]);
       }
     });
 
