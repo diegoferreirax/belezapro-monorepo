@@ -8,18 +8,25 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.Arrays;
+
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
-
     private final AuthInterceptor authInterceptor;
 
     @Autowired
-    public WebConfig(AuthInterceptor authInterceptor) {
-        this.authInterceptor = authInterceptor;
-    }
+    public WebConfig(
+                AuthInterceptor authInterceptor,
+                @Value("${cors.allowed-origins}") String allowedOriginsCsv) {
+            this.authInterceptor = authInterceptor;
+            this.allowedOrigins = Arrays.stream(allowedOriginsCsv.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toArray(String[]::new);
+        }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

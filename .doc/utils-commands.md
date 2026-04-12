@@ -6,6 +6,12 @@ docker stop $(docker ps -a -q) 2>/dev/null; docker rm $(docker ps -a -q) 2>/dev/
 
 docker stop auth_api 2>/dev/null; docker rm auth_api 2>/dev/null; docker rmi -f dotnet/aspnet:8.0 2>/dev/null    
 docker compose -f docker-compose.yml up -d --force-recreate auth_api     
+docker compose -f docker-compose.yml up -d --force-recreate api     
+
+docker stop belezapro-monorepo-api-1 2>/dev/null; docker images 2>/dev/null;   
+
+docker stop belezapro-monorepo-api-1   
+docker rmi xxxxxx --force
 
 ```
 
