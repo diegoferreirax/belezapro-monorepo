@@ -10,7 +10,6 @@ import com.belezapro.belezapro_api.features.services.models.ServiceItem;
 import com.belezapro.belezapro_api.features.services.repositories.ServiceItemRepository;
 import com.belezapro.belezapro_api.features.users.models.User;
 import com.belezapro.belezapro_api.features.users.repositories.UserRepository;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,18 +30,15 @@ public class AppointmentService {
     private final UserRepository userRepository;
     private final ServiceItemRepository serviceItemRepository;
     private final ClientAdminLinkRepository linkRepository;
-    private final AvailabilityService availabilityService;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
                               UserRepository userRepository,
                               ServiceItemRepository serviceItemRepository,
-                              ClientAdminLinkRepository linkRepository,
-                              @Lazy AvailabilityService availabilityService) {
+                              ClientAdminLinkRepository linkRepository) {
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
         this.serviceItemRepository = serviceItemRepository;
         this.linkRepository = linkRepository;
-        this.availabilityService = availabilityService;
     }
 
     public Page<Appointment> getPaginatedList(String adminId, String clientId, String term, String startDate, String endDate, AppointmentStatus status, Pageable pageable) {
@@ -73,9 +69,6 @@ public class AppointmentService {
         
         enrichAppointmentData(adminId, data);
 
-        int duration = data.getTotalDurationMinutes() != null ? data.getTotalDurationMinutes() : 0;
-        availabilityService.assertSlotAvailable(adminId, data.getDate(), data.getStartTime(), duration, null);
-
         // Garante o vínculo do cliente com o admin/profissional
         if (!linkRepository.existsByUserIdAndAdminId(data.getClientId(), adminId)) {
             linkRepository.save(ClientAdminLink.builder()
@@ -102,9 +95,6 @@ public class AppointmentService {
         existing.setStatus(incoming.getStatus());
 
         enrichAppointmentData(adminId, existing);
-
-        int durationUpdate = existing.getTotalDurationMinutes() != null ? existing.getTotalDurationMinutes() : 0;
-        availabilityService.assertSlotAvailable(adminId, existing.getDate(), existing.getStartTime(), durationUpdate, id);
 
         return appointmentRepository.save(existing);
     }
@@ -166,9 +156,6 @@ public class AppointmentService {
         existing.setStartTime(req.getStartTime());
 
         enrichAppointmentData(adminId, existing);
-
-        int duration = existing.getTotalDurationMinutes() != null ? existing.getTotalDurationMinutes() : 0;
-        availabilityService.assertSlotAvailable(adminId, existing.getDate(), existing.getStartTime(), duration, appointmentId);
 
         return appointmentRepository.save(existing);
     }

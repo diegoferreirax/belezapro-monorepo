@@ -5,9 +5,7 @@ import com.belezapro.belezapro_api.features.schedule.models.ScheduleConfig;
 import com.belezapro.belezapro_api.features.schedule.models.TimeRange;
 import com.belezapro.belezapro_api.features.schedule.services.ScheduleService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -53,6 +51,13 @@ public class AvailabilityService {
             return List.of();
         }
 
+        LocalDate day = LocalDate.parse(date);
+        LocalDate today = LocalDate.now(clock.withZone(businessZoneId));
+        // Agendamento novo só faz sentido para hoje ou futuro; dias passados não listam horários.
+        if (day.isBefore(today)) {
+            return List.of();
+        }
+
         Optional<ScheduleConfig> configOpt = scheduleService.getConfigForDate(professionalId, date);
         if (configOpt.isEmpty()) {
             return List.of();
@@ -73,6 +78,7 @@ public class AvailabilityService {
         int current = timeToMinutes(config.getStartTime());
         int end = timeToMinutes(config.getEndTime());
         Instant now = clock.instant();
+        boolean isToday = day.equals(today);
 
         List<String> times = new ArrayList<>();
         while (current + durationMinutes <= end) {
@@ -90,37 +96,20 @@ public class AvailabilityService {
                         + (a.getTotalDurationMinutes() != null ? a.getTotalDurationMinutes() : 0)));
 
             if (!hasOverlapWithBreak && !hasOverlapWithAppointment) {
-                ZonedDateTime slotStart = LocalDate.parse(date).atTime(LocalTime.parse(timeStr)).atZone(businessZoneId);
-                if (!slotStart.toInstant().isBefore(now)) {
-                    times.add(timeStr);
+                if (isToday) {
+                    ZonedDateTime slotStart = LocalDate.parse(date).atTime(LocalTime.parse(timeStr)).atZone(businessZoneId);
+                    if (slotStart.toInstant().isBefore(now)) {
+                        current += SLOT_STEP_MINUTES;
+                        continue;
+                    }
                 }
+                times.add(timeStr);
             }
 
             current += SLOT_STEP_MINUTES;
         }
 
         return times;
-    }
-
-    /**
-     * Garante que o horário de início está entre os retornados por {@link #getAvailableTimes}
-     * (mesmas regras de disponibilidade).
-     */
-    public void assertSlotAvailable(String professionalId,
-                                    String date,
-                                    String startTime,
-                                    int durationMinutes,
-                                    String excludeAppointmentId) {
-        if (startTime == null || startTime.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horário inválido.");
-        }
-        if (durationMinutes <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Duração inválida.");
-        }
-        List<String> slots = getAvailableTimes(professionalId, date, durationMinutes, excludeAppointmentId);
-        if (!slots.contains(startTime)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Horário indisponível.");
-        }
     }
 
     private static boolean overlaps(int startA, int endA, int startB, int endB) {

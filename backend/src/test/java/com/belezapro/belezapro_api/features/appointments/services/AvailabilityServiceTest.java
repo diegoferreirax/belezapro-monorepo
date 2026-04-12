@@ -139,6 +139,15 @@ class AvailabilityServiceTest {
     }
 
     @Test
+    void getAvailableTimesReturnsEmptyForPastCalendarDays() {
+        ZonedDateTime fixed = ZonedDateTime.of(2026, 4, 16, 8, 0, 0, 0, ZoneId.of("America/Sao_Paulo"));
+        Clock clock = Clock.fixed(fixed.toInstant(), ZoneId.of("America/Sao_Paulo"));
+        availabilityService = new AvailabilityService(scheduleService, appointmentService, clock, "America/Sao_Paulo");
+
+        assertThat(availabilityService.getAvailableTimes(PROF, "2026-04-15", 60, null)).isEmpty();
+    }
+
+    @Test
     void filtersPastSlotsForToday() {
         ZonedDateTime fixed = ZonedDateTime.of(2026, 4, 16, 10, 31, 0, 0, ZoneId.of("America/Sao_Paulo"));
         Clock clock = Clock.fixed(fixed.toInstant(), ZoneId.of("America/Sao_Paulo"));
