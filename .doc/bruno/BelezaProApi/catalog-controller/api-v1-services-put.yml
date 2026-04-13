@@ -1,0 +1,26 @@
+info:
+  name: api/v1/services/SERVICE_ID
+  type: http
+  seq: 5
+
+http:
+  method: PUT
+  url: "{{belezapro-api}}/api/v1/services/SERVICE_ID"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+
+body:json:
+  {
+  "name": "Servico Atualizado",
+  "price": 60.0,
+  "durationMinutes": 60,
+  "isActive": true
+}
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,26 @@
+info:
+  name: api/v1/services
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{belezapro-api}}/api/v1/services"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+
+body:json:
+  {
+  "name": "Novo Servico",
+  "price": 50.0,
+  "durationMinutes": 60,
+  "isActive": true
+}
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,17 @@
+info:
+  name: api/v1/appointments/APPOINTMENT_ID
+  type: http
+  seq: 9
+
+http:
+  method: DELETE
+  url: "{{belezapro-api}}/api/v1/appointments/APPOINTMENT_ID"
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

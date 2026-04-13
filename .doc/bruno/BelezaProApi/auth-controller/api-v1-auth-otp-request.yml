@@ -1,0 +1,20 @@
+info:
+  name: api/v1/auth/otp/request
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{belezapro-api}}/api/v1/auth/otp/request"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "client@belezapro.com"
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

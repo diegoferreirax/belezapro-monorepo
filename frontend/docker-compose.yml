@@ -1,10 +1,9 @@
+version: '3.8'
+
 services:
-  angular-web-app:
-    container_name: angular-web-app
-    image: 22-alpine
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+  web:
+    build: .
+    image: belezapro-web:latest
     ports:
       - "4200:80"
-      
+    restart: unless-stopped

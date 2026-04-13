@@ -1,0 +1,26 @@
+info:
+  name: api/v1/appointments
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{belezapro-api}}/api/v1/appointments"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+
+body:json:
+  {
+  "clientId": "CLIENT_ID",
+  "serviceIds": ["SERVICE_ID"],
+  "date": "2026-04-10",
+  "startTime": "10:00"
+}
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

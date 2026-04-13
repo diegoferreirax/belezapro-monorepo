@@ -1,0 +1,14 @@
+info:
+  name: api/v1/public/companies/{companyId}/professionals
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{belezapro-api}}/api/v1/public/companies/69d15f3d1a5c5893d5c40630/professionals"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

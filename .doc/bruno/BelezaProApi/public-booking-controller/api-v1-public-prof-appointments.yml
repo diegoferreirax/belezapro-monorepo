@@ -1,0 +1,29 @@
+info:
+  name: api/v1/public/professionals/PROF_ID/appointments
+  type: http
+  seq: 20
+
+http:
+  method: POST
+  url: "{{belezapro-api}}/api/v1/public/professionals/{{professional-id}}/appointments"
+  body:
+    type: json
+    data: |-
+      {
+        "client": {
+          "name": "admin",
+          "email": "admin@belezapro.com",
+          "phone": "55111155151"
+        },
+        "selectedServices": [
+          "69d15f3d1a5c5893d5c40633"
+        ],
+        "date": "2026-04-06",
+        "time": "08:00"
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

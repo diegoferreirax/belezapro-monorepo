@@ -1,0 +1,46 @@
+@if (appointment) {
+  <div class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col transform transition-all">
+      
+      <!-- Header with Warning Theme -->
+      <div class="p-6 bg-amber-50 border-b border-amber-100 flex items-start gap-4 relative">
+        <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">history_toggle_off</mat-icon>
+        </div>
+        <div class="flex-1 pt-1">
+          <h3 class="text-xl font-serif italic text-amber-900">Atenção ao Horário</h3>
+          <p class="text-amber-700/80 text-sm mt-1">Conclusão antecipada de serviço.</p>
+        </div>
+        <button (click)="closeModal()" class="absolute top-6 right-6 text-amber-400 hover:text-amber-600 transition-colors">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6">
+        <p class="text-stone-600 mb-4 text-base">
+          O agendamento de <strong class="text-stone-800">{{ clientName }}</strong> está marcado para o futuro 
+          (<strong class="text-stone-800">{{ appointment.date | date:'dd/MM/yyyy' }} às {{ appointment.startTime }}</strong>).
+        </p>
+        
+        <div class="bg-stone-50 rounded-2xl p-4 mb-8 border border-stone-100 flex gap-3 items-start">
+          <mat-icon class="text-stone-400 shrink-0">info</mat-icon>
+          <p class="text-stone-500 text-sm leading-relaxed">
+            Concluir um agendamento antes do horário previsto pode afetar suas métricas e relatórios. Tem certeza de que o serviço já foi finalizado?
+          </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-3">
+          <button (click)="closeModal()" class="px-6 py-2.5 rounded-full border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors font-medium">
+            Não, manter pendente
+          </button>
+          <button (click)="confirm()" class="px-6 py-2.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/30 font-medium flex items-center gap-2">
+            <mat-icon class="text-sm">check_circle</mat-icon>
+            Sim, já finalizei
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

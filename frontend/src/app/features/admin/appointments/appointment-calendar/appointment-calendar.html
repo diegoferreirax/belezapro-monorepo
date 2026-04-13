@@ -1,0 +1,119 @@
+<div class="bg-white rounded-3xl border border-stone-100 overflow-hidden shadow-sm flex flex-col h-[800px]">
+  
+  <!-- Calendar Header (Controls) -->
+  <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
+    <div class="flex items-center gap-2">
+      <button (click)="previousWeek()" class="p-2 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-full transition-colors">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button (click)="today()" class="px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 rounded-full transition-colors">
+        Hoje
+      </button>
+      <button (click)="nextWeek()" class="p-2 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-full transition-colors">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+    <div class="text-lg font-serif italic text-stone-800">
+      {{ calendarDays()[0] | date:'MMMM yyyy' }}
+    </div>
+    <div class="w-[120px]"></div> <!-- Spacer for balance -->
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="flex-1 overflow-y-auto flex">
+    
+    <!-- Time Axis (Y) -->
+    <div class="w-16 shrink-0 border-r border-stone-100 bg-stone-50/30 relative">
+      <div class="h-12 border-b border-stone-100"></div> <!-- Header spacer -->
+      <div class="relative" [style.height.px]="calendarHeight()">
+        @for (hour of calendarHours(); track hour) {
+          <div class="absolute w-full text-right pr-2 text-xs text-stone-400 font-medium"
+               [style.top.px]="(hour - calendarBounds().minHour) * 90 - 8">
+            {{ formatHour(hour) }}
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Days Grid (X) -->
+    <div class="flex-1 flex min-w-[800px]">
+      @for (day of calendarDays(); track day.getTime()) {
+        <div class="flex-1 border-r border-stone-100 last:border-r-0 flex flex-col">
+          
+          <!-- Day Header -->
+          <div class="h-12 border-b border-stone-100 flex flex-col items-center justify-center bg-stone-50/50 sticky top-0 z-20">
+            <span class="text-[10px] uppercase font-bold text-stone-400 tracking-wider">{{ day | date:'EEE' }}</span>
+            <span class="text-sm font-medium text-stone-800" [class.text-rose-600]="day.toDateString() === (currentDate() | date:'EEE MMM dd yyyy')">{{ day | date:'dd' }}</span>
+          </div>
+
+          <!-- Day Content (Relative Container) -->
+          <div class="relative shrink-0" [style.height.px]="calendarHeight()">
+            
+            <!-- Hour Grid Lines -->
+            @for (hour of calendarHours(); track hour) {
+              <div class="absolute w-full border-t border-stone-100/50"
+                   [style.top.px]="(hour - calendarBounds().minHour) * 90"></div>
+            }
+
+            <!-- Clickable Background for New Appointments -->
+            <div class="absolute inset-0 z-0 flex flex-col">
+              @for (slot of clickableSlots(); track $index) {
+                <div class="h-[45px] hover:bg-stone-50/50 cursor-pointer transition-colors border-t border-transparent hover:border-stone-200/30"
+                     role="button" tabindex="0"
+                     (click)="bookAt.emit({ date: day, hour: slot.hour, minutes: slot.minutes })"
+                     (keydown.enter)="bookAt.emit({ date: day, hour: slot.hour, minutes: slot.minutes })"></div>
+              }
+            </div>
+
+            <!-- Unavailable Blocks -->
+            @for (block of getUnavailableBlocksForDay(day); track $index) {
+              <div class="absolute left-0 right-0 bg-stone-200/40 z-10"
+                   style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px);"
+                   [style.top.px]="block.top"
+                   [style.height.px]="block.height"
+                   role="presentation">
+              </div>
+            }
+
+            <!-- Appointments -->
+            @for (app of getAppointmentsForDay(day); track app.id) {
+              <div [class]="getAppointmentClasses(app)"
+                   [style.top.px]="calculateTop(app.startTime)"
+                   [style.height.px]="calculateHeight(app.totalDurationMinutes)"
+                   role="button" tabindex="0"
+                   (click)="handleAppointmentClick(app, $event)"
+                   (keydown.enter)="handleAppointmentClick(app, $event)">
+                
+                <div class="text-xs font-bold mb-0.5 truncate">{{ app.startTime }}</div>
+                <div class="text-sm font-medium leading-tight truncate">{{ getClientName(app) }}</div>
+                <div class="text-xs opacity-70 truncate mt-1">{{ getServiceNames(app) }}</div>
+                
+                <!-- Hover Actions Overlay -->
+                @if (app.status === AppointmentStatus.PENDING || app.status === AppointmentStatus.CONFIRMED) {
+                  <div class="absolute inset-0 bg-white/80 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                    @if (app.status === AppointmentStatus.PENDING) {
+                      <button (click)="onStatusChangeClick(app, AppointmentStatus.CONFIRMED, $event)" title="Confirmar" class="p-1 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors flex items-center justify-center">
+                        <mat-icon class="text-[20px] w-[20px] h-[20px]">check_circle</mat-icon>
+                      </button>
+                    }
+                    @if (app.status === AppointmentStatus.CONFIRMED) {
+                      <button (click)="onStatusChangeClick(app, AppointmentStatus.COMPLETED, $event)" title="Concluir" class="p-1 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors flex items-center justify-center">
+                        <mat-icon class="text-[20px] w-[20px] h-[20px]">done_all</mat-icon>
+                      </button>
+                    }
+                    <button (click)="handleAppointmentClick(app, $event)" title="Editar" class="p-1 text-stone-600 hover:bg-stone-200 rounded-lg transition-colors flex items-center justify-center">
+                      <mat-icon class="text-[20px] w-[20px] h-[20px]">edit</mat-icon>
+                    </button>
+                    <button (click)="onCancelClick(app, $event)" title="Cancelar" class="p-1 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors flex items-center justify-center">
+                      <mat-icon class="text-[20px] w-[20px] h-[20px]">cancel</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

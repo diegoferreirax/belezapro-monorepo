@@ -1,0 +1,26 @@
+info:
+  name: api/v1/users
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{belezapro-api}}/api/v1/users"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+
+body:json:
+  {
+  "name": "Admin Default",
+  "email": "admin@belezapro.com",
+  "role": "ADMIN",
+  "password": "123"
+}
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

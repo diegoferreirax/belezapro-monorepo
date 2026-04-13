@@ -1,0 +1,59 @@
+info:
+  name: api/v1/auth/otp/validate
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{belezapro-api}}/api/v1/auth/otp/validate"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "client@belezapro.com",
+        "password": "028779"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Verifica se o status da resposta é 200 (OK)
+        if (res.getStatus() === 200) {
+            // 1. Faz o parse do corpo da resposta JSON
+            var jsonData = res.getBody();
+            
+            // 2. Tenta extrair o token das chaves mais comuns: 'token' ou 'accessToken'
+            var token = jsonData.token; 
+
+            // VERIFICAÇÃO DE DADOS (opcional, mas útil para debug)
+            console.log("Token capturado: " + token);
+            
+            // 3. Verifica se o token foi realmente encontrado
+            if (token) {
+                // Altere 'environment' para 'globals' se quiser que o token seja global
+                // Nota: O método .set() armazena a variável.
+                bru.setEnvVar("token", token);
+                
+                // Exibe mensagem de sucesso nos testes
+                test("Status 200 e Token Armazenado com Sucesso", function () {
+                    expect(token).to.be.a("string");
+                });
+            } else {
+                test("Falha: Token não encontrado no corpo da resposta", function () {
+                    expect(token).to.not.be.undefined;
+                });
+            }
+
+        } else {
+            // Exibe mensagem de falha se a requisição não retornou 200
+            test("Falha no Login: Status Code não é 200", function () {
+                expect(res.getStatus()).to.eql(200);
+            });
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

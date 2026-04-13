@@ -1,0 +1,72 @@
+<div class="min-h-screen bg-stone-50">
+  <!-- Hero Section -->
+  <header
+    class="relative h-[50vh] flex items-center justify-center overflow-hidden"
+  >
+    <div class="absolute inset-0 bg-stone-900">
+      <img
+        src="https://images.unsplash.com/photo-1560750588-73207b1ef5b8?q=80&w=2000&auto=format&fit=crop"
+        alt="Salon Background"
+        class="w-full h-full object-cover object-center opacity-60"
+        referrerpolicy="no-referrer"
+      />
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-stone-50 via-transparent to-black/30"
+      ></div>
+    </div>
+    <div class="relative z-10 text-center text-white p-6">
+      <h1 class="text-6xl md:text-8xl font-serif italic mb-4 drop-shadow-2xl">
+        BelezaPro
+      </h1>
+      <div class="h-px w-24 bg-white/30 mx-auto mb-6"></div>
+      <p
+        class="text-sm md:text-base font-light tracking-[0.3em] uppercase opacity-90"
+      >
+        Manicure • Pedicure • Podologia
+      </p>
+    </div>
+  </header>
+
+  <!-- Booking Section -->
+  <main class="max-w-4xl mx-auto -mt-32 relative z-20 px-4 pb-20">
+    <div
+      class="bg-white rounded-[2.5rem] shadow-2xl shadow-stone-200/50 p-6 md:p-12 border border-stone-100"
+    >
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-serif italic text-stone-800 mb-2">
+          Agende seu Horário
+        </h2>
+        <p class="text-stone-400">
+          Escolha os serviços e o melhor momento para você.
+        </p>
+      </div>
+
+      <app-booking-form [preloadedCompanies]="preloadedCompanies" />
+    </div>
+
+    <footer class="mt-12 text-center text-stone-400 text-sm">
+      <p>&copy; 2026 BelezaPro. Todos os direitos reservados.</p>
+      <div class="mt-4 flex items-center justify-center gap-3">
+        <a
+          (click)="navigateToClient()"
+          (keydown.enter)="navigateToClient()"
+          tabindex="0"
+          class="cursor-pointer inline-flex items-center gap-1.5 hover:text-stone-600 transition-colors"
+        >
+          <mat-icon class="text-base">person_pin</mat-icon>
+          Acesso Cliente
+        </a>
+        <span class="text-stone-300">&bull;</span>
+        <a
+          (click)="navigateToAdmin()"
+          (keydown.enter)="navigateToAdmin()"
+          tabindex="0"
+          class="cursor-pointer inline-flex items-center gap-1.5 hover:text-stone-600 transition-colors"
+        >
+          <mat-icon class="text-base">admin_panel_settings</mat-icon>
+          Acesso Administrativo
+        </a>
+      </div>
+    </footer>
+  </main>
+</div>

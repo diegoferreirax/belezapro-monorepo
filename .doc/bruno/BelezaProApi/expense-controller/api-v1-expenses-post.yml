@@ -1,0 +1,24 @@
+info:
+  name: api/v1/expenses (create)
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{belezapro-api}}/api/v1/expenses"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+  json:
+    description: "Compra de materiais"
+    amount: 150.5
+    date: "2026-04-15"
+    category: "Materiais"
+    isPaid: false
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

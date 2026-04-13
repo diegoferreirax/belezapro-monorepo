@@ -1,0 +1,22 @@
+info:
+  name: api/v1/client-portal/appointments/{id} reschedule
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{belezapro-api}}/api/v1/client-portal/appointments/{{appointmentId}}"
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body: json
+  json:
+    serviceIds: []
+    date: "2026-04-10"
+    startTime: "14:00"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

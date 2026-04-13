@@ -1,0 +1,72 @@
+<div
+  class="min-h-screen bg-[#f5f5f0] flex flex-col items-center justify-center p-6"
+>
+  <div class="max-w-4xl w-full">
+    <div class="text-center mb-12">
+      <h1 class="text-5xl font-serif italic text-stone-800 mb-4">
+        Bem-vindo ao Salão
+      </h1>
+      <p class="text-stone-500 text-lg">
+        Como você deseja acessar o sistema hoje?
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- Card Cliente -->
+      <button
+        (click)="selectRole('client')"
+        class="group bg-white p-10 rounded-[40px] shadow-sm border border-stone-100 text-left transition-all hover:shadow-xl hover:-translate-y-1 focus:outline-none"
+      >
+        <div
+          class="w-16 h-16 bg-stone-800 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+        >
+          <mat-icon class="text-3xl">person_pin</mat-icon>
+        </div>
+        <h2 class="text-2xl font-serif italic text-stone-800 mb-3">
+          Sou Cliente
+        </h2>
+        <p class="text-stone-500 leading-relaxed">
+          Agende seus horários, veja seus compromissos e gerencie suas reservas
+          com facilidade.
+        </p>
+        <div class="mt-8 flex items-center text-stone-800 font-medium">
+          <span>Acessar portal</span>
+          <mat-icon class="ml-2 group-hover:translate-x-2 transition-transform"
+            >arrow_forward</mat-icon
+          >
+        </div>
+      </button>
+
+      <!-- Card Admin -->
+      <button
+        (click)="selectRole('admin')"
+        class="group bg-white p-10 rounded-[40px] shadow-sm border border-stone-100 text-left transition-all hover:shadow-xl hover:-translate-y-1 focus:outline-none"
+      >
+        <div
+          class="w-16 h-16 bg-stone-100 text-stone-800 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+        >
+          <mat-icon class="text-3xl">admin_panel_settings</mat-icon>
+        </div>
+        <h2 class="text-2xl font-serif italic text-stone-800 mb-3">
+          Sou Administrador
+        </h2>
+        <p class="text-stone-500 leading-relaxed">
+          Gerencie a agenda do salão, serviços, clientes e configurações
+          administrativas.
+        </p>
+        <div class="mt-8 flex items-center text-stone-800 font-medium">
+          <span>Painel de gestão</span>
+          <mat-icon class="ml-2 group-hover:translate-x-2 transition-transform"
+            >arrow_forward</mat-icon
+          >
+        </div>
+      </button>
+    </div>
+
+    <div class="mt-16 text-center">
+      <p class="text-stone-400 text-sm italic">
+        "Beleza e cuidado em cada detalhe."
+      </p>
+    </div>
+  </div>
+</div>

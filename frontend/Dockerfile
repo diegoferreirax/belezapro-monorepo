@@ -1,21 +1,21 @@
 FROM node:22-alpine AS builder
 
-RUN npm install -g pnpm
-
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-COPY angular.json tsconfig.app.json ./
+COPY package.json package-lock.json ./
+COPY angular.json ./
 COPY tsconfig.json tsconfig.app.json ./
+COPY .postcssrc.json ./
 
 WORKDIR /app/src
 COPY src ./
 
-RUN pnpm install
-RUN pnpm run build --configuration production
+RUN npm install
+RUN npm install -g @angular/cli
+RUN ng build --configuration production
 
 FROM nginx:alpine
-
-COPY --from=builder /app/build /usr/share/nginx/html
+COPY --from=builder /app/build/browser /usr/share/nginx/html
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"]

@@ -1,3 +1,5 @@
 package com.belezapro.belezapro_api.features.users.dto;
 
-public record UserDto(Long id, String nome, String email) {}
+import com.belezapro.belezapro_api.features.users.models.Role;
+
+public record UserDto(String id, String name, String email, Role role, boolean isBlocked) {}
