@@ -19,14 +19,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     public WebConfig(
-                AuthInterceptor authInterceptor,
-                @Value("${cors.allowed-origins}") String allowedOriginsCsv) {
-            this.authInterceptor = authInterceptor;
-            this.allowedOrigins = Arrays.stream(allowedOriginsCsv.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .toArray(String[]::new);
-        }
+            AuthInterceptor authInterceptor,
+            @Value("${cors.allowed-origins}") String allowedOriginsCsv) {
+        this.authInterceptor = authInterceptor;
+        this.allowedOrigins = Arrays.stream(allowedOriginsCsv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -38,7 +38,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins(allowedOrigins)
+                .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true);
