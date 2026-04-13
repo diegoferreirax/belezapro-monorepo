@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    image: belezapro-web:latest
+    ports:
+      - "4200:80"
+    restart: unless-stopped

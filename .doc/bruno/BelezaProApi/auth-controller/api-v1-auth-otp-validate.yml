@@ -11,7 +11,7 @@ http:
     data: |-
       {
         "email": "client@belezapro.com",
-        "password": "313679"
+        "password": "028779"
       }
 
 runtime:

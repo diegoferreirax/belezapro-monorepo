@@ -31,6 +31,16 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+  
+  web:
+    build: frontend/.
+    image: belezapro-web:latest
+    ports:
+      - "4200:80"
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
 
 volumes:
   mongodb_data:

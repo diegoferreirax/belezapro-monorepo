@@ -13,6 +13,9 @@ docker stop belezapro-monorepo-api-1 2>/dev/null; docker images 2>/dev/null;
 docker stop belezapro-monorepo-api-1   
 docker rmi xxxxxx --force
 
+docker build -t web -f Dockerfile .    
+docker run -p 4200:80 web   
+
 ```
 
 ```
