@@ -6,6 +6,7 @@ WORKDIR /workspace
 COPY . /workspace
 
 RUN rm -f src/main/resources/application.properties
+RUN rm -f src/main/resources/application-docker.properties
 
 # Ensure the Gradle wrapper is executable and build the bootJar (skip tests for speed)
 RUN chmod +x gradlew && ./gradlew -x test bootJar --no-daemon

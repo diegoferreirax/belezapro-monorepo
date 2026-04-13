@@ -16,6 +16,13 @@ docker rmi xxxxxx --force
 docker build -t web -f Dockerfile .    
 docker run -p 4200:80 web   
 
+docker compose -f docker-compose.yml up api    
+docker compose -f docker-compose.yml down api   
+
+docker rmi -f belezapro-api   
+docker build -t api -f Dockerfile .    
+docker run -p 8080:8080 api   
+
 ```
 
 ```
