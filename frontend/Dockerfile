@@ -11,7 +11,7 @@ RUN npm install
 COPY src ./src/
 COPY scripts/docker-build-env.cjs ./scripts/docker-build-env.cjs
 
-ARG API_URL=
+ARG API_URL=/api/v1
 ENV API_URL=$API_URL
 ARG APP_NAME=BelezaPro
 ENV APP_NAME=$APP_NAME

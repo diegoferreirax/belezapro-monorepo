@@ -7,7 +7,7 @@ const outFile = path.join(__dirname, '..', 'src', 'environments', 'environment.p
 
 const defaults = {
   appName: 'BelezaPro',
-  apiUrl: '',
+  apiUrl: '/api/v1',
 };
 
 const fromEnv = [

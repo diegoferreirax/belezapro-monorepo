@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
   appName: 'BelezaPro',
-  apiUrl: ''
+  apiUrl: '/api/v1'
 };
