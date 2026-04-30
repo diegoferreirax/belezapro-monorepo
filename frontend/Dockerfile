@@ -6,12 +6,19 @@ COPY angular.json ./
 COPY tsconfig.json tsconfig.app.json ./
 COPY .postcssrc.json ./
 
-WORKDIR /app/src
-COPY src ./
-
 RUN npm install
-RUN npm install -g @angular/cli
-RUN ng build --configuration production
+
+COPY src ./src/
+COPY scripts/docker-build-env.cjs ./scripts/docker-build-env.cjs
+
+ARG API_URL=
+ENV API_URL=$API_URL
+ARG APP_NAME=BelezaPro
+ENV APP_NAME=$APP_NAME
+
+RUN node scripts/docker-build-env.cjs
+
+RUN npx ng build --configuration production
 
 FROM nginx:alpine
 COPY --from=builder /app/build/browser /usr/share/nginx/html

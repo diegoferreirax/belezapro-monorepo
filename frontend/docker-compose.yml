@@ -2,7 +2,11 @@ version: '3.8'
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      args:
+        API_URL: ${API_URL:-http://localhost:8080/api/v1}
+        APP_NAME: ${APP_NAME:-BelezaPro}
     image: belezapro-web:latest
     ports:
       - "4200:80"

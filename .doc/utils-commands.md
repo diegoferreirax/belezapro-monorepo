@@ -49,3 +49,13 @@ dotnet ef database update
 docker tag abc95440395b diegoferreirax/belezapro-api:1    
 docker push diegoferreirax/belezapro-api:1    
 ```
+
+```
+docker tag abc95440395b diegoferreirax/belezapro-web:41    
+docker push diegoferreirax/belezapro-web:41    
+```
+
+```
+docker pull diegoferreirax/belezapro-web:41    
+docker run -p 4200:80 diegoferreirax/belezapro-web:41    
+```  
