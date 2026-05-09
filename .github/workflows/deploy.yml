@@ -38,7 +38,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/dist/app
+          path: frontend/dist/app/browser
 
   deploy-pages:
     needs: build-frontend
