@@ -43,6 +43,7 @@ jobs:
             exit 1
           fi
           export API_URL
+          export USE_HASH_ROUTING=true
           node scripts/docker-build-env.cjs
 
       - name: Build (GitHub Pages base path)
