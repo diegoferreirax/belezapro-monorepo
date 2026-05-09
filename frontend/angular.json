@@ -59,6 +59,9 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "github-pages": {
+              "baseHref": "/belezapro-monorepo/"
             }
           },
           "defaultConfiguration": "production"

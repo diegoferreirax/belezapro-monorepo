@@ -18,8 +18,6 @@ jobs:
     defaults:
       run:
         working-directory: frontend
-    env:
-      PUBLIC_URL: https://diegoferreirax.github.io/belezapro-monorepo
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -32,8 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build
-        run: npm run build
+      - name: Build (GitHub Pages base path)
+        run: npm run build:github-pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
