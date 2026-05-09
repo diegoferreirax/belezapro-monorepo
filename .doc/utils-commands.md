@@ -46,8 +46,18 @@ dotnet ef database update
 ```
 
 ```
-docker tag abc95440395b diegoferreirax/belezapro-api:1    
-docker push diegoferreirax/belezapro-api:1    
+docker build -t scheduling-pro-api -f Dockerfile .   
+docker run -p 5300:8080 scheduling-pro-api   
+docker tag abc95440395b diegoferreirax/scheduling-pro-api:1    
+docker push diegoferreirax/scheduling-pro-api:1    
+
+docker build -t scheduling-pro-web -f Dockerfile .   
+docker run -p 4200:80 scheduling-pro-web   
+docker tag abc95440395b diegoferreirax/scheduling-pro-web:1    
+docker push diegoferreirax/scheduling-pro-web:1    
+
+docker build -t minha-app-angular .   
+docker run -p 4000:4000 -e API_URL="https://api.minhaapp.com" -e APP_NAME="AppProducao" scheduling-pro-web
 ```
 
 ```

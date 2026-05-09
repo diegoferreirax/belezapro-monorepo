@@ -1,72 +1,112 @@
-# 🗄️ Entidades e Modelos do Sistema
+# Entidades e Modelos do Sistema
 
-Este documento descreve as principais interfaces e modelos de dados do **BelezaPro**. Eles formam o coração das regras de negócio e estão centralizados no arquivo `src/app/core/models/salon.models.ts`. 
+Este documento descreve as principais interfaces e modelos de dados do **BelezaPro**. As interfaces TypeScript ficam em `src/app/core/models/salon.models.ts`; os modelos Java correspondentes estão em `backend/src/main/java/com/belezapro/belezapro_api/features/*/models/`. A persistência é feita no **MongoDB** via Spring Data.
 
-> 💡 **Nota de Migração Futura:** Esta modelagem já foi estruturada pensando em um banco de dados relacional. Toda a ramificação se apoia no acoplamento de chaves estrangeiras (`clientId`, `serviceIds`), o que facilitará diretamente a substituição do LocalStorage para serviços reais estruturados (como PostgreSQL ou MongoDB + Ref).
+## 1. Empresa (`Company`)
+Representa o salão ou estabelecimento (tenant). Cada profissional (`ADMIN`) pertence a uma company via `companyId`.
+- **`id`** (`string`): Identificador único.
+- **`name`** (`string`): Nome comercial do salão.
+- **`document`** (`string`): CNPJ ou CPF do estabelecimento.
+- **`phone`** (`string`): Telefone de contato.
+- **`isActive`** (`boolean`): Flag de ativação do tenant.
 
-## 1. Clientes (`Client`)
-Representa a base de usuários consolidados do salão.
-- **`id`** (`string`): Identificador único (UUID) do cliente.
-- **`name`** (`string`): Nome do cliente.
-- **`email`** (`string`): Utilizado como chave de assinatura e contato.
-- **`phone`** (`string`): Formato numérico, pilar da comunicação (SMS, Logins OTP via WhatsApp no futuro).
-- **`isBlocked`** (`boolean?`): Opcional. Sinaliza se o cliente está na lista de exceção de agenda (banido por faltas graves/no-shows).
+Coleção MongoDB: `companies`.
 
 ---
 
-## 2. Serviços (`Service`)
+## 2. Clientes (`Client`)
+Representa a base de usuários consolidados do salão. No MongoDB, o cliente é um documento na coleção `users` com `role = CLIENT`; a associação com o profissional fica na coleção `client_admin_links`.
+- **`id`** (`string`): Identificador único do cliente.
+- **`name`** (`string`): Nome do cliente.
+- **`email`** (`string`): Utilizado como chave de assinatura, contato e login via OTP.
+- **`phone`** (`string`): Formato numérico, pilar da comunicação (SMS, OTP via WhatsApp no futuro).
+- **`isBlocked`** (`boolean?`): Sinaliza se o cliente está na lista de exceção de agenda (banido por faltas graves/no-shows).
+- **`linkedAt`** (`string?`): Data em que o vínculo com o profissional foi criado (derivada de `ClientAdminLink.createdAt`).
+
+---
+
+## 3. Vínculo Cliente-Profissional (`ClientAdminLink`)
+Tabela de junção que associa um cliente (`userId`) a um profissional (`adminId`). Índice composto único impede duplicação.
+- **`id`** (`string`): Identificador único.
+- **`userId`** (`string`): Referência ao `User` com role `CLIENT`.
+- **`adminId`** (`string`): Referência ao `User` com role `ADMIN` ou `ROOT`.
+- **`isBlocked`** (`boolean`): Bloqueio do cliente no contexto daquele profissional.
+
+Coleção MongoDB: `client_admin_links`.
+
+---
+
+## 4. Serviços (`Service`)
 Tipos de procedimentos ou produtos prestados. Um fluxo de usuário pode combinar $N$ serviços no mesmo agendamento.
-- **`id`** (`string`): Identificador único (UUID).
+- **`id`** (`string`): Identificador único.
 - **`name`** (`string`): Título público do procedimento.
 - **`price`** (`number`): Valor numérico total em Reais.
-- **`durationMinutes`** (`number`): Duração estimada em minutos. É este campo, de todo o cardápio somado, que definirá as aberturas disponíveis no Calendário de Reservas.
-- **`isActive`** (`boolean`): Flag de ocultação. `false` o remove da visão de reservas dos clientes sem precisar expurgar transações antigas no seu histórico financeiro (Soft Delete de visibilidade).
+- **`durationMinutes`** (`number`): Duração estimada em minutos. O somatório dos serviços selecionados define as aberturas disponíveis no calendário de reservas.
+- **`isActive`** (`boolean`): Flag de ocultação. `false` o remove da visão de reservas sem expurgar transações antigas (soft delete de visibilidade).
+
+No backend, o modelo `ServiceItem` inclui também `adminId` para isolamento multi-profissional. Coleção MongoDB: `services`.
 
 ---
 
-## 3. Agendamentos (`Appointment`)
+## 5. Agendamentos (`Appointment`)
 A entidade pivô. Conecta `Client` a `Services` no cruzeiro temporal lógico gerado pela agenda.
-- **`id`** (`string`): UUID do Agendamento.
-- **`clientId`** (`string`): Chave-estrangeira apontando na coleção de `Client`.
-- **`serviceIds`** (`string[]`): Coleção combinada de UUIDs (Muitos-para-Muitos em cascata flat) com procedimentos.
-- **`date`** (`string`): Formato Data ISO (`YYYY-MM-DD`). Facilita filtragem e listagens de Dashboard sem parseamento de timezone complexo.
-- **`startTime`** (`string`): Formato String `HH:mm`. Representa fielmente a que horas se iniciam os serviços.
-- **`totalDurationMinutes`** (`number`): *Campo desnormalizado/Calculado*. O somatório puro das minutas de todos os `serviceIds` incluídos.
-- **`totalPrice`** (`number`): O *Check-out*. Preenchido no instante de salvamento, guardando a quantia cobrada.
-- **`status`** (`AppointmentStatus`): O Enum do fluxo de vivência da reserva.
-   - `PENDING` (Pendente).
-   - `CONFIRMED` (Confirmado e garantido na agenda).
-   - `COMPLETED` (Finalizado, já se transformou em LTV do negócio).
-   - `CANCELLED` (Lançado fora).
+- **`id`** (`string`): Identificador do agendamento.
+- **`companyId`** (`string?`): Referência à empresa (tenant).
+- **`adminId`** (`string?`): Referência ao profissional responsável.
+- **`clientId`** (`string`): Referência ao cliente.
+- **`clientName`** (`string?`): Snapshot do nome do cliente no momento da criação.
+- **`clientEmail`** (`string?`): Snapshot do e-mail do cliente.
+- **`clientPhone`** (`string?`): Snapshot do telefone do cliente.
+- **`serviceIds`** (`string[]`): UUIDs dos serviços incluídos.
+- **`parsedServiceNames`** (`string[]?`): Nomes dos serviços resolvidos no momento da criação (desnormalizado).
+- **`date`** (`string`): Formato ISO (`YYYY-MM-DD`).
+- **`startTime`** (`string`): Formato `HH:mm`.
+- **`totalDurationMinutes`** (`number`): Somatório das durações dos serviços incluídos (desnormalizado).
+- **`totalPrice`** (`number`): Valor total cobrado (desnormalizado).
+- **`status`** (`AppointmentStatus`): Enum do ciclo de vida da reserva.
+   - `PENDING` — Pendente.
+   - `CONFIRMED` — Confirmado e garantido na agenda.
+   - `COMPLETED` — Finalizado.
+   - `CANCELLED` — Cancelado.
+
+Coleção MongoDB: `appointments`.
 
 ---
 
-## 4. Matriz de Horários (`DayScheduleConfig` & `TimeRange`)
-A mecânica de funcionamento. Um módulo robusto capaz de gerar matrizes padrão semanais e "Override Engines" unicamente para fins de feriados, folgas ou datas festivas.
-- **`dayOfWeek`** (`number`): Numeração de controle cronológico, sendo `0` para Domingo até `6` para Sábado.
-- **`date`** (`string?`): Atributo forte. Presente apenas em **exceções/overrides** de calendário (`YYYY-MM-DD`). Se este campo existir na tabela config, então as regras dele apagam a regra geral do `dayOfWeek`.
-- **`startTime` / `endTime`** (`string`): Ponteiros de abertura e fechamento num dia (`HH:mm`).
-- **`breaks`** (`TimeRange[]`): Coleção contendo blocos inoperantes (`start`, `end`). Por essas frinchas a Engine de Slot recusa alocar a `totalDurationMinutes` de novos Agendamentos. (Útil pra pausas café, almoço funcionário etc).
-- **`isClosed`** (`boolean`): Dia de fechamento total (bloqueando cálculo do turno).
+## 6. Matriz de Horarios (`DayScheduleConfig` & `TimeRange`)
+Módulo que gera matrizes padrão semanais e exceções (overrides) para feriados, folgas ou datas festivas.
+- **`dayOfWeek`** (`number`): `0` para Domingo ate `6` para Sabado.
+- **`date`** (`string?`): Presente apenas em exceções/overrides (`YYYY-MM-DD`). Quando presente, sobrepõe a regra do `dayOfWeek`.
+- **`startTime` / `endTime`** (`string`): Abertura e fechamento do dia (`HH:mm`).
+- **`breaks`** (`TimeRange[]`): Blocos inoperantes (`start`, `end`) onde a engine de slots recusa alocar novos agendamentos (pausas, almoço, etc.).
+- **`isClosed`** (`boolean`): Dia de fechamento total.
+
+No backend, `ScheduleConfig` inclui `adminId` (índice composto único `adminId + dayOfWeek`). Overrides ficam em `ScheduleOverride`. Coleções MongoDB: `schedule_configs` e `schedule_overrides`.
 
 ---
 
-## 5. Despesas & Financeiro (`Expense`)
-Usina paralela que baliza o fluxo de Caixa Saída do negócio, para subtrair das entradas dos `Appointments COMPLETED`.
+## 7. Despesas & Financeiro (`Expense`)
+Controle de caixa-saída do negócio, para subtrair das entradas dos agendamentos `COMPLETED`.
 - **`id`** (`string`): Identificador único.
-- **`description`** (`string`): Natureza do gasto. O nome do recebedor (ex: "Equatorial Energia", "Mercantil").
-- **`amount`** (`number`): Gravidade do gasto financeiro em Reais.
-- **`date`** (`string`): Data que a depesa surgiu ou vencimento principal (`YYYY-MM-DD`).
-- **`category`** (`ExpenseCategory`): Enum que empacota o modelo `Materiais`, `Aluguel`, `Utilidades (Luz/Água)`, `Marketing` ou `Outros`.
-- **`isPaid`** (`boolean`): Diferencia relatórios baseados em **Fluxo de Caixa Rebaixado** (Real) vs. **Competência/Aprovisionado** (À Pagar).
+- **`description`** (`string`): Natureza do gasto (ex: "Equatorial Energia", "Mercantil").
+- **`amount`** (`number`): Valor em Reais.
+- **`date`** (`string`): Data da despesa ou vencimento (`YYYY-MM-DD`).
+- **`category`** (`ExpenseCategory`): Enum — `Materiais`, `Aluguel`, `Utilidades (Luz/Água)`, `Marketing` ou `Outros`.
+- **`isPaid`** (`boolean`): Diferencia fluxo de caixa real (pago) de competência (a pagar).
+
+No backend, o modelo inclui `adminId` para isolamento por profissional (índice composto `adminId + date`). Coleção MongoDB: `expenses`.
 
 ---
 
-## 6. Usuários do Sistema (`User`)
-A camada de gestão e segurança do sistema. Representa os donos do salão e funcionários com nível de acesso ao Painel Admin, reaproveitando a nomenclatura padrão de "User".
-- **`id`** (`string`): Identificador único (UUID) do funcionário.
-- **`name`** (`string`): Nome de exibição na interface administrativa.
-- **`email`** (`string`): Dado de contato corporativo do staff.
-- **`username`** (`string`): Credencial utilizada explicitamente para o login.
-- **`role`** (`string`): Diferencia 'admin' de 'client', garantindo escalabilidade nos níveis de acesso.
-- **`password`** (`string?`): Atualmente mantida em texto nas chaves de `localStorage` para a fase de *mock/prova de conceito*. Em uma migração real de backend, **este campo deve obrigatoriamente** mudar seu tratamento para guardar apenas uma hash gerada por algoritmos de chave única (como *Bcrypt*).
+## 8. Usuários do Sistema (`User`)
+Entidade unificada de autenticação e autorização. Um mesmo documento na coleção `users` pode representar tanto staff do salão quanto clientes do portal.
+- **`id`** (`string`): Identificador único.
+- **`name`** (`string`): Nome de exibição.
+- **`email`** (`string`): Credencial de login (admin via senha, cliente via OTP) e contato.
+- **`phone`** (`string?`): Telefone de contato.
+- **`companyId`** (`string?`): Referência à empresa/tenant. Presente para `ADMIN` e `ROOT`; ausente para `CLIENT`.
+- **`role`** (`Role`): Enum que define o nível de acesso — `ROOT`, `ADMIN` ou `CLIENT`.
+- **`password`** (`string`): Hash Bcrypt gerenciada no backend. Não é exposta ao frontend.
+- **`isBlocked`** (`boolean`): Impede login quando `true`.
+
+Coleção MongoDB: `users`.

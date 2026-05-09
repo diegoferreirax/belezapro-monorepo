@@ -20,6 +20,14 @@ COPY --from=builder /workspace/build/libs/*.jar app.jar
 # Expose the application port
 EXPOSE 8080
 
+ENV SPRING_PROFILES_ACTIVE=docker \
+    SPRING_MONGODB_URI=mongodb://root:root123@mongodb:27017/belezapro_db?authSource=admin \
+    SPRING_DATA_MONGODB_AUTO_INDEX_CREATION=true \
+    JWT_SECRET=changeit-secret \
+    SPRING_MAIL_HOST=localhost \
+    SPRING_MAIL_PORT=1025 \
+    CORS_ALLOWED_ORIGINS=*
+
 # Allow passing JVM options via environment variable
 ENV JAVA_OPTS="-Xms256m -Xmx512m"
 
