@@ -30,6 +30,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Generate environment.prod.ts for GitHub Pages
+        env:
+          SECRET_API_URL: ${{ secrets.FRONTEND_API_URL }}
+          VAR_API_URL: ${{ vars.FRONTEND_API_URL }}
+          APP_NAME: BelezaPro
+        run: |
+          API_URL="$SECRET_API_URL"
+          if [ -z "$API_URL" ]; then API_URL="$VAR_API_URL"; fi
+          if [ -z "$API_URL" ]; then
+            echo "::error::Define FRONTEND_API_URL as a repository Actions variable or secret — full API base URL, e.g. https://your-api.example.com/api/v1 (no trailing slash)."
+            exit 1
+          fi
+          export API_URL
+          node scripts/docker-build-env.cjs
+
       - name: Build (GitHub Pages base path)
         run: npm run build:github-pages
 
