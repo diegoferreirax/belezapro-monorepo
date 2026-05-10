@@ -63,7 +63,7 @@ public class DataSeeder implements CommandLineRunner {
                 System.out.println("Usuário maria seedado! Email: maria@belezapro.com | Senha: admin123");
 
                 cortesSA = Company.builder()
-                        .name("Cortes S/A")
+                        .name("Cortes do guri S/A")
                         .document("12345678000299")
                         .phone("44999999888")
                         .isActive(true)
