@@ -73,3 +73,7 @@ docker push diegoferreirax/belezapro-web:41
 docker pull diegoferreirax/belezapro-web:41    
 docker run -p 4200:80 diegoferreirax/belezapro-web:41    
 ```  
+
+```
+npx expo start
+```  
