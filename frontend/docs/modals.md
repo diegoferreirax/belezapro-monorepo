@@ -7,10 +7,11 @@ Este documento define os padrões visuais e estruturais para as modais (caixas d
 Utilizadas para interações que exigem entrada de dados do usuário, como criação ou edição de entidades (ex: `ServiceModalComponent`).
 
 ### Características Visuais:
-- **Dimensões:** Limitadas a `max-w-md` (largura média).
-- **Moldura:** Cantos bem arredondados (`rounded-3xl` do Tailwind) e sombra profunda (`shadow-2xl`).
-- **Fundo da Tela (Backdrop):** Escurecimento suave com desfoque de fundo (`bg-stone-900/40 backdrop-blur-sm`).
-- **Animações (Entrada):** `animate-in fade-in zoom-in duration-200`.
+- **Dimensões:** Limitadas a `max-w-md` (largura média) no painel; modais largas (agendamento) usam `max-w-2xl` via `<app-modal-shell size="lg">`.
+- **Moldura:** Cantos `rounded-card` (token `--radius-card`, equivalente ao antigo `rounded-3xl`) e sombra `shadow-modal` (equivalente a `shadow-2xl`).
+- **Fundo da Tela (Backdrop):** Escurecimento suave com desfoque (`bp-modal-backdrop-muted` → `bg-stone-900/40 backdrop-blur-sm`). Confirmações críticas podem usar `backdrop="emphasis"` no shell (`/60`).
+- **Animações (Entrada):** utilitário global `bp-animate-modal-in` (keyframes `bp-modal-in`, 200ms ease-out). Painéis deslizantes (ex.: filtros) usam `bp-animate-panel-in` (`bp-panel-in`).
+- **Shell reutilizável:** `<app-modal-shell>` em `shared/components/modal-shell` — props `size` (`md`|`lg`), `tall` (altura máx. 90vh + coluna), `backdrop` (`muted`|`emphasis`). O conteúdo (header/corpo) projeta-se com `ng-content`.
 - **Cabeçalho (Header):** Clean. Título à esquerda com tipografia sofisticada (`font-serif italic text-xl`) e um botão de fechar sem fundo à direita.
 - **Botões de Ação:** Ocupam lagura proporcional (`flex-1`) com arredondamento padrão do sistema (`rounded-xl`).
 

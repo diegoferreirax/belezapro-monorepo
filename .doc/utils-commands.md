@@ -8,20 +8,23 @@ docker stop auth_api 2>/dev/null; docker rm auth_api 2>/dev/null; docker rmi -f 
 docker compose -f docker-compose.yml up -d --force-recreate auth_api     
 docker compose -f docker-compose.yml up -d --force-recreate api     
 
+docker compose -f docker-compose.yml up -d mongodb     
+
 docker stop belezapro-monorepo-api-1 2>/dev/null; docker images 2>/dev/null;   
 
 docker stop belezapro-monorepo-api-1   
 docker rmi xxxxxx --force
 
+docker rmi -f web    
 docker build -t web -f Dockerfile .    
 docker run -p 4200:80 web   
 
 docker compose -f docker-compose.yml up api    
 docker compose -f docker-compose.yml down api   
 
-docker rmi -f belezapro-api   
-docker build -t api -f Dockerfile .    
-docker run -p 8080:8080 api   
+docker rmi -f scheduling-pro-api   
+docker build -t scheduling-pro-api -f Dockerfile .    
+docker run -p 8080:8080 scheduling-pro-api   
 
 ```
 
@@ -48,6 +51,7 @@ dotnet ef database update
 ```
 docker build -t scheduling-pro-api -f Dockerfile .   
 docker run -p 5300:8080 scheduling-pro-api   
+docker images    
 docker tag abc95440395b diegoferreirax/scheduling-pro-api:1    
 docker push diegoferreirax/scheduling-pro-api:1    
 

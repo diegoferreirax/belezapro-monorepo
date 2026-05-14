@@ -8,18 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
     standalone: true,
     imports: [CommonModule, RouterModule, MatIconModule],
     templateUrl: './auth-selection.html',
-    styles: [`
-    :host {
-      display: block;
-    }
-    mat-icon {
-      width: auto;
-      height: auto;
-    }
-  `]
+    host: { class: 'block' },
 })
 export class AuthSelectionComponent {
-    private router = inject(Router);
+    private readonly router = inject(Router);
 
     selectRole(role: 'admin' | 'client') {
         if (role === 'admin') {

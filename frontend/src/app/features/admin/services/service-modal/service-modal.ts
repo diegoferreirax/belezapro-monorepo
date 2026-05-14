@@ -4,11 +4,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Service } from '../../../../core/models/salon.models';
 import { DurationFormatPipe } from '../../../../shared/pipes/duration-format.pipe';
+import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
 
 @Component({
   selector: 'app-service-modal',
   standalone: true,
-  imports: [CommonModule, MatIconModule, ReactiveFormsModule, DurationFormatPipe],
+  imports: [CommonModule, MatIconModule, ReactiveFormsModule, DurationFormatPipe, ModalShellComponent],
   templateUrl: './service-modal.html'
 })
 export class ServiceModalComponent implements OnChanges {

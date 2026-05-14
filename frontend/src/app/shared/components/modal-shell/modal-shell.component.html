@@ -1,0 +1,15 @@
+<div
+  class="bp-modal-backdrop"
+  [class.bp-modal-backdrop-muted]="backdrop === 'muted'"
+  [class.bp-modal-backdrop-emphasis]="backdrop === 'emphasis'"
+  (mousedown)="onBackdropMouseDown($event)"
+>
+  <div
+    class="bp-modal-panel bp-animate-modal-in"
+    [class.bp-modal-panel-lg]="size === 'lg'"
+    [class.bp-modal-panel-tall]="tall"
+    (mousedown)="$event.stopPropagation()"
+  >
+    <ng-content />
+  </div>
+</div>
