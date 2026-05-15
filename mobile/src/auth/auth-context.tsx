@@ -92,7 +92,7 @@ export function AuthProvider({ children }: Props) {
     }
     await persistSessionToken(token);
     setUser(session);
-    router.replace('/(app)/(tabs)/explore');
+    router.replace('/(app)/(tabs)');
   }, []);
 
   const value = useMemo<AuthContextValue>(

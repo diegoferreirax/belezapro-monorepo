@@ -9,11 +9,17 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApiHttpError } from '@/src/api/client';
 import { useAuth } from '@/src/auth/auth-context';
+import {
+  BelezaproColors as C,
+  BelezaproRadius as R,
+  FontFamilies as F,
+} from '@/constants/belezapro-theme';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -22,17 +28,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   if (!isReady) {
     return (
-      <View style={[styles.centered, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" />
+      <View style={[styles.centered, { paddingTop: insets.top, backgroundColor: C.surfaceCanvas }]}>
+        <ActivityIndicator size="large" color={C.textHeading} />
       </View>
     );
   }
 
   if (isAdmin) {
-    return <Redirect href="/(app)/(tabs)/explore" />;
+    return <Redirect href="/(app)/(tabs)" />;
   }
 
   async function onSubmit() {
@@ -59,42 +66,74 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.root, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 16 }]}
+      style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.card}>
-        <Text style={styles.title}>BelezaPro</Text>
-        <Text style={styles.subtitle}>Acesso administrador</Text>
+        <Text style={styles.brand}>BelezaPro</Text>
 
-        <Text style={styles.label}>E-mail</Text>
-        <TextInput
-          style={styles.input}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          textContentType="username"
-          value={email}
-          onChangeText={setEmail}
-          editable={!submitting}
-        />
+        <Text style={styles.subtitle}>Acesso ao painel administrador</Text>
 
-        <Text style={styles.label}>Senha</Text>
-        <TextInput
-          style={styles.input}
-          secureTextEntry
-          textContentType="password"
-          value={password}
-          onChangeText={setPassword}
-          editable={!submitting}
-        />
+        <View style={styles.fieldBlock}>
+          <Text style={styles.label}>E-mail</Text>
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+            textContentType="username"
+            placeholder="maria@exemplo.com"
+            placeholderTextColor={C.textMuted}
+            value={email}
+            onChangeText={setEmail}
+            editable={!submitting}
+          />
+        </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <View style={styles.fieldBlock}>
+          <Text style={styles.label}>Senha</Text>
+          <View style={styles.passwordShell}>
+            <TextInput
+              style={styles.passwordInput}
+              secureTextEntry={!showPassword}
+              textContentType="password"
+              autoCapitalize="none"
+              placeholder="••••••••"
+              placeholderTextColor={C.textMuted}
+              value={password}
+              onChangeText={setPassword}
+              editable={!submitting}
+            />
+            <Pressable
+              style={styles.eyeButton}
+              onPress={() => setShowPassword((v) => !v)}
+              disabled={submitting}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
+              <MaterialIcons
+                name={showPassword ? 'visibility-off' : 'visibility'}
+                size={22}
+                color={C.textMuted}
+              />
+            </Pressable>
+          </View>
+        </View>
+
+        {error ? (
+          <Text style={styles.error} accessibilityRole="alert">
+            {error}
+          </Text>
+        ) : null}
 
         <Pressable
-          style={[styles.button, submitting && styles.buttonDisabled]}
+          style={({ pressed }) => [
+            styles.button,
+            pressed && !submitting ? styles.buttonPressed : null,
+            submitting ? styles.buttonDisabled : null,
+          ]}
           onPress={() => void onSubmit()}
           disabled={submitting}>
           {submitting ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={C.actionOnPrimary} />
           ) : (
             <Text style={styles.buttonLabel}>Entrar</Text>
           )}
@@ -114,61 +153,115 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    backgroundColor: '#f2f4f7',
+    backgroundColor: C.surfaceCanvas,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: C.surfaceElevated,
+    borderRadius: R.card,
+    padding: 26,
     borderWidth: 1,
-    borderColor: '#e5e8ed',
+    borderColor: C.borderSoft,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.08,
+        shadowRadius: 15,
+      },
+      android: {
+        elevation: 6,
+      },
+      default: {},
+    }),
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    marginBottom: 4,
-    color: '#111',
+  brand: {
+    fontFamily: F.serifItalicHeading,
+    fontSize: 34,
+    lineHeight: 40,
+    color: C.textHeading,
+    letterSpacing: -0.5,
+    marginBottom: 12,
   },
   subtitle: {
+    fontFamily: F.sansMedium,
     fontSize: 15,
-    color: '#5c6570',
-    marginBottom: 24,
+    lineHeight: 22,
+    color: C.textBody,
+    marginBottom: 28,
+  },
+  fieldBlock: {
+    marginBottom: 18,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 6,
+    fontFamily: F.sansSemiBold,
+    fontSize: 11,
+    letterSpacing: 2.8,
+    textTransform: 'uppercase',
+    color: C.textMuted,
+    marginBottom: 8,
+    marginLeft: 2,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#cfd4dc',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    fontFamily: F.sansRegular,
     fontSize: 16,
-    marginBottom: 16,
-    backgroundColor: '#fafbfc',
+    color: C.textHeading,
+    borderWidth: 1,
+    borderColor: C.borderSoft,
+    borderRadius: R.controlLg,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: C.surfaceMuted,
+  },
+  passwordShell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: C.borderSoft,
+    borderRadius: R.controlLg,
+    backgroundColor: C.surfaceMuted,
+    paddingLeft: 4,
+    paddingRight: 2,
+    minHeight: 52,
+  },
+  passwordInput: {
+    flex: 1,
+    fontFamily: F.sansRegular,
+    fontSize: 16,
+    color: C.textHeading,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+  },
+  eyeButton: {
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   error: {
-    color: '#b3261e',
-    marginBottom: 12,
+    fontFamily: F.sansRegular,
+    color: C.error,
     fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 14,
+    marginTop: -4,
   },
   button: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
-    paddingVertical: 14,
+    marginTop: 8,
+    backgroundColor: C.actionPrimary,
+    borderRadius: R.pill,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 52,
+  },
+  buttonPressed: {
+    backgroundColor: C.actionPrimaryHover,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.55,
   },
   buttonLabel: {
-    color: '#fff',
+    fontFamily: F.sansSemiBold,
+    color: C.actionOnPrimary,
     fontSize: 16,
-    fontWeight: '600',
   },
 });

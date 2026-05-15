@@ -15,7 +15,7 @@ export default function Index() {
   }
 
   if (isAdmin) {
-    return <Redirect href="/(app)/(tabs)/explore" />;
+    return <Redirect href="/(app)/(tabs)" />;
   }
 
   return <Redirect href="/(auth)/login" />;

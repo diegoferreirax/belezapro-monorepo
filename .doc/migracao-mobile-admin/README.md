@@ -14,6 +14,7 @@ Este diretório concentra a documentação da migração das funcionalidades de 
 | [comparativo-angular-expo.md](./comparativo-angular-expo.md) | Mapeamento feature a feature e diferenças de UX plataforma. |
 | [api-e-estado.md](./api-e-estado.md) | Contrato com a API Java, camada HTTP e padrão de loading/dados centralizado. |
 | [agenda-e-horarios.md](./agenda-e-horarios.md) | Pontos críticos de agenda e configuração de horários; decisão de calendário. |
+| [layout-e-identidade-visual.md](./layout-e-identidade-visual.md) | Cores, tipografia (Inter + Playfair), raios e padrões de UI alinhados ao Angular web. |
 | [checklist-por-feature.md](./checklist-por-feature.md) | Fases executáveis com pausa para revisão entre features. |
 
 ## Referências rápidas no monorepo
