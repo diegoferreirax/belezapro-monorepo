@@ -58,3 +58,4 @@ No web, `AuthService.logout` limpa caches de tenant (`SalonService`, `ClientServ
 | `QueryClient` | `mobile/src/api/query-client.ts` |
 | Provider | `mobile/app/_providers.tsx` (usado em `mobile/app/_layout.tsx`) |
 | Modelos + `mapSpringPageToPageResponse` | `mobile/src/types/salon.models.ts`, `mobile/src/types/pagination.models.ts` |
+| Auth (fase 2) | `mobile/src/auth/*`, `mobile/app/(auth)/login.tsx`, rotas em `mobile/app/index.tsx` e `mobile/app/(app)/_layout.tsx` |

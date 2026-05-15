@@ -1,5 +1,6 @@
 import { getApiBaseUrl } from '@/src/config/env';
 import { getAccessToken } from '@/src/api/access-token';
+import { notifyUnauthorized } from '@/src/auth/on-unauthorized';
 
 export class ApiHttpError extends Error {
   readonly status: number;
@@ -83,6 +84,9 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   });
 
   if (!response.ok) {
+    if (response.status === 401 && auth) {
+      notifyUnauthorized();
+    }
     const errText = await response.text();
     let errBody: unknown = errText;
     if (errText) {

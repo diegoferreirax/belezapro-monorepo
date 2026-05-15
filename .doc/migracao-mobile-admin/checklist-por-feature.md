@@ -20,14 +20,14 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 
 ## Fase 2 — Autenticação admin
 
-- [ ] Tela login (email/senha) → `POST /auth/login`
-- [ ] Armazenamento seguro do token
-- [ ] Decodificar claims mínimas (role, exp) para guards de navegação
-- [ ] Logout limpando storage + cache de queries
+- [x] Tela login (email/senha) → `POST /auth/login`
+- [x] Armazenamento seguro do token
+- [x] Decodificar claims mínimas (role, exp) para guards de navegação
+- [x] Logout limpando storage + cache de queries
 
 ## Fase 3 — Shell de navegação admin
 
-- [ ] Grupo de rotas autenticadas vs públicas (Expo Router)
+- [x] Grupo de rotas autenticadas vs públicas (Expo Router)
 - [ ] Tabs ou drawer alinhado às seções do admin web (appointments, schedule, …)
 - [ ] Ocultar “Usuários” se não for ROOT
 

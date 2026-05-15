@@ -76,4 +76,5 @@ docker run -p 4200:80 diegoferreirax/belezapro-web:41
 
 ```
 npx expo start
+eas build -p android --profile apk --local
 ```  
