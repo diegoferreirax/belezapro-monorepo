@@ -13,10 +13,10 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 
 ## Fase 1 — Fundação API no mobile
 
-- [ ] Variável de ambiente para `apiUrl` (paridade com `environment.apiUrl`)
-- [ ] `apiClient` (fetch, JSON, headers, erros)
-- [ ] `QueryClient` + provider no layout raiz
-- [ ] Tipos / mapeamentos copiados ou gerados a partir de `salon.models` + paginação Spring
+- [x] Variável de ambiente para `apiUrl` (paridade com `environment.apiUrl`)
+- [x] `apiClient` (fetch, JSON, headers, erros)
+- [x] `QueryClient` + provider no layout raiz
+- [x] Tipos / mapeamentos copiados ou gerados a partir de `salon.models` + paginação Spring
 
 ## Fase 2 — Autenticação admin
 

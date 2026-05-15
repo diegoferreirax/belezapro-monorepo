@@ -45,3 +45,16 @@ Vários `GET` retornam página no formato Spring (`content`, `totalElements`, `n
 ## Logout e limpeza de cache
 
 No web, `AuthService.logout` limpa caches de tenant (`SalonService`, `ClientService`, `ScheduleService`, `ExpenseService`). No app, ao deslogar: limpar secure storage **e** `queryClient.clear()` (ou remover queries por prefixo de chave).
+
+## Implementação no mobile (fase 1)
+
+| Peça | Caminho |
+|------|---------|
+| Base URL + dev fallback | `mobile/src/config/env.ts` (`EXPO_PUBLIC_API_URL`) |
+| Exemplo de env | `mobile/.env.example` |
+| Tipagem `ProcessEnv` | `mobile/types/process-env.d.ts` |
+| `fetch` + `ApiHttpError` + Bearer opcional | `mobile/src/api/client.ts` (`apiRequest`) |
+| Token (reader registrável na fase 2) | `mobile/src/api/access-token.ts` |
+| `QueryClient` | `mobile/src/api/query-client.ts` |
+| Provider | `mobile/app/_providers.tsx` (usado em `mobile/app/_layout.tsx`) |
+| Modelos + `mapSpringPageToPageResponse` | `mobile/src/types/salon.models.ts`, `mobile/src/types/pagination.models.ts` |
