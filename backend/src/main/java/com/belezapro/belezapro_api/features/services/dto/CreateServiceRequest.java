@@ -1,11 +1,13 @@
 package com.belezapro.belezapro_api.features.services.dto;
 
+import lombok.Data;
+
 import java.math.BigDecimal;
 
-public record CreateServiceRequest(
-    String name,
-    BigDecimal price,
-    Integer durationMinutes,
-    Boolean isActive
-) {
+@Data
+public class CreateServiceRequest {
+    private String name;
+    private BigDecimal price;
+    private Integer durationMinutes;
+    private Boolean isActive;
 }

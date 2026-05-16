@@ -38,8 +38,9 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 
 ## Fase 5 — Clientes
 
-- [ ] Lista `GET /clients`
-- [ ] Criar/editar, toggle block — paridade com `ClientService`
+- [x] Lista `GET /clients`
+- [x] Criar/editar, toggle block — paridade com `ClientService`
+- [] TODO: Criar agendamento direto pelo cliente (quando toda a parte de agendamento estiver concluída)
 
 ## Fase 6 — Despesas
 

@@ -21,12 +21,12 @@ public class CatalogService {
         return repository.findAllByAdminId(adminId);
     }
 
-    public ServiceItem create(String adminId, CreateServiceRequest request) {
+    public ServiceItem create(String adminId, CreateServiceRequest body) {
         ServiceItem item = new ServiceItem();
-        item.setName(request.name());
-        item.setPrice(request.price());
-        item.setDurationMinutes(request.durationMinutes());
-        item.setIsActive(request.isActive() != null ? request.isActive() : Boolean.TRUE);
+        item.setName(body.getName());
+        item.setPrice(body.getPrice());
+        item.setDurationMinutes(body.getDurationMinutes());
+        item.setIsActive(body.getIsActive() != null ? body.getIsActive() : Boolean.TRUE);
         item.setAdminId(adminId);
         item.setCreatedAt(Instant.now());
         return repository.save(item);

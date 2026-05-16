@@ -1,6 +1,8 @@
 package com.belezapro.belezapro_api.features.clients.services;
 
 import com.belezapro.belezapro_api.features.appointments.services.AppointmentService;
+import com.belezapro.belezapro_api.features.clients.dto.CreateClientRequest;
+import com.belezapro.belezapro_api.features.clients.dto.UpdateClientRequest;
 import com.belezapro.belezapro_api.features.clients.models.*;
 import com.belezapro.belezapro_api.features.clients.repositories.ClientAdminLinkRepository;
 import com.belezapro.belezapro_api.features.users.models.Role;
@@ -47,23 +49,23 @@ public class ClientService {
      * Upsert por email na collection users (Role.CLIENT), depois cria o vínculo se não existir.
      * Se o email já existir como ADMIN ou ROOT, lança erro.
      */
-    public ClientDto createClient(String adminId, CreateClientDto dto) {
-        User user = userRepository.findByEmail(dto.getEmail())
+    public ClientDto createClient(String adminId, CreateClientRequest body) {
+        User user = userRepository.findByEmail(body.getEmail())
             .map(existing -> {
                 if (existing.getRole() != Role.CLIENT) {
                     throw new IllegalArgumentException(
                         "Este e-mail pertence a um usuário com perfil de " + existing.getRole() + ". Não é possível vinculá-lo como cliente.");
                 }
                 // Atualiza dados de perfil se o user já existia (ex: cliente que fez OTP login antes)
-                existing.setName(dto.getName());
-                existing.setPhone(dto.getPhone());
+                existing.setName(body.getName());
+                existing.setPhone(body.getPhone());
                 return userRepository.save(existing);
             })
             .orElseGet(() -> userRepository.save(
                 User.builder()
-                    .name(dto.getName())
-                    .email(dto.getEmail())
-                    .phone(dto.getPhone())
+                    .name(body.getName())
+                    .email(body.getEmail())
+                    .phone(body.getPhone())
                     .role(Role.CLIENT)
                     .isBlocked(false)
                     // Senha aleatória — cliente acessa via OTP, não por senha
@@ -91,15 +93,15 @@ public class ClientService {
     /**
      * Atualiza nome e telefone do User. Email é imutável (chave de identidade).
      */
-    public ClientDto updateClient(String userId, String adminId, UpdateClientDto dto) {
+    public ClientDto updateClient(String userId, String adminId, UpdateClientRequest body) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado: " + userId));
 
         ClientAdminLink link = linkRepository.findByUserIdAndAdminId(userId, adminId)
             .orElseThrow(() -> new IllegalArgumentException("Vínculo não encontrado para este admin"));
 
-        user.setName(dto.getName());
-        user.setPhone(dto.getPhone());
+        user.setName(body.getName());
+        user.setPhone(body.getPhone());
         userRepository.save(user);
 
         return toDto(user, link);

@@ -2,6 +2,7 @@ info:
   name: api/v1/clients/CLIENT_ID
   type: http
   seq: 3
+  docs: PUT atualiza nome e telefone. Corpo = UpdateClientRequest (name, phone). Email não é alterado.
 
 http:
   method: PUT
@@ -14,7 +15,6 @@ http:
 body:json:
   {
   "name": "Cliente Editado",
-  "email": "teste2@cliente.com",
   "phone": "44888888"
 }
 

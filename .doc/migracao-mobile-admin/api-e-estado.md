@@ -13,8 +13,8 @@ Resumo a partir de `frontend/src/app/core/services/`:
 | Auth | `POST /auth/login` — body `{ email, password }` → `{ token }` |
 | Agendamentos | `GET /appointments` (paginação Spring), `GET /appointments/range`, `GET /appointments/active/date/{date}`, `POST/PUT/DELETE /appointments/...`, `PATCH /appointments/cancel/date/{date}` |
 | Horários | `GET/PUT /schedule/config`, `GET/PUT /schedule/overrides` |
-| Serviços | `GET /services`, **`POST /services`** (body `CreateServiceRequest`, sem `id`), `PUT/DELETE /services/{id}` |
-| Clientes | `GET/POST /clients`, `PUT /clients/{id}`, `PATCH /clients/{id}/toggle-block` |
+| Serviços | `GET /services`, **`POST /services`** (body `CreateServiceRequest`), `PUT/DELETE /services/{id}` |
+| Clientes | `GET /clients`, `POST /clients` (body `CreateClientRequest`), `PUT /clients/{id}` (body `UpdateClientRequest`), `PATCH /clients/{id}/toggle-block` |
 | Despesas | `GET /expenses?month=&year=`, `POST/PUT/DELETE`, `PATCH /expenses/{id}/paid` |
 | Usuários | `GET /users?page=&size=&...`, `POST/PUT/DELETE`, `PATCH /users/{id}/toggle-block` |
 

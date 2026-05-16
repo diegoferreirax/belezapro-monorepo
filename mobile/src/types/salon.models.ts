@@ -29,6 +29,17 @@ export interface CreateServiceRequest {
   isActive: boolean;
 }
 
+export interface CreateClientRequest {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface UpdateClientRequest {
+  name: string;
+  phone: string;
+}
+
 export interface Client {
   id: string;
   name: string;
