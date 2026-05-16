@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,11 +13,8 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  BelezaproColors as C,
-  BelezaproRadius as R,
-  FontFamilies as F,
-} from '@/constants/belezapro-theme';
+import type { BelezaproColorTokens } from '@/constants/belezapro-theme';
+import { BelezaproRadius as R, FontFamilies as F } from '@/constants/belezapro-theme';
 import { ServiceFormModal } from '@/src/features/services/ServiceFormModal';
 import { formatDurationMinutes } from '@/src/features/services/format-duration';
 import {
@@ -26,6 +23,7 @@ import {
   useServicesQuery,
   useUpdateServiceMutation,
 } from '@/src/features/services/queries';
+import { useAppTheme } from '@/src/theme/app-theme';
 import type { CreateServiceRequest, Service } from '@/src/types/salon.models';
 
 function formatBrl(value: number): string {
@@ -36,18 +34,151 @@ function formatBrl(value: number): string {
   }
 }
 
-const rowCardShadow =
-  Platform.OS === 'ios'
-    ? {
+function createServicesStyles(C: BelezaproColorTokens) {
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: C.surfaceCanvas,
+      paddingHorizontal: 18,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 20,
+    },
+    pageTitle: {
+      fontFamily: F.serifItalicHeading,
+      fontSize: 30,
+      lineHeight: 36,
+      color: C.textHeading,
+    },
+    pageSubtitle: {
+      fontFamily: F.sansRegular,
+      fontSize: 15,
+      color: C.textBody,
+      marginTop: 4,
+      maxWidth: 240,
+    },
+    headerBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: C.actionPrimary,
+      paddingHorizontal: 16,
+      paddingVertical: 11,
+      borderRadius: R.pill,
+    },
+    headerBtnLabel: {
+      fontFamily: F.sansSemiBold,
+      color: C.actionOnPrimary,
+      fontSize: 15,
+    },
+    centerFill: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+    },
+    errorText: {
+      fontFamily: F.sansRegular,
+      color: C.error,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    retryBtn: {
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderRadius: R.pill,
+      borderWidth: 1,
+      borderColor: C.borderSubtle,
+    },
+    retryLabel: {
+      fontFamily: F.sansMedium,
+      color: C.textHeading,
+    },
+    listContent: {
+      paddingTop: 4,
+      flexGrow: 1,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: C.surfaceElevated,
+      borderRadius: R.card,
+      borderWidth: 1,
+      borderColor: C.borderSoft,
+      padding: 14,
+      marginBottom: 12,
+    },
+    rowIconWrap: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
+    rowIconActive: {
+      backgroundColor: C.stateActiveMutedBg,
+    },
+    rowIconInactive: {
+      backgroundColor: C.surfaceMuted,
+    },
+    rowText: {
+      flex: 1,
+      minWidth: 0,
+    },
+    rowTitle: {
+      fontFamily: F.sansSemiBold,
+      fontSize: 16,
+      color: C.textHeading,
+    },
+    rowMeta: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginTop: 4,
+    },
+    rowMetaItem: {
+      fontFamily: F.sansRegular,
+      fontSize: 14,
+      color: C.textBody,
+    },
+    rowActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    iconBtn: {
+      padding: 6,
+      borderRadius: 8,
+    },
+    empty: {
+      fontFamily: F.sansRegular,
+      color: C.textMuted,
+      textAlign: 'center',
+      marginTop: 48,
+      paddingHorizontal: 24,
+    },
+  });
+}
+
+export default function ServicesScreen() {
+  const insets = useSafeAreaInsets();
+  const { colors: C } = useAppTheme();
+  const styles = useMemo(() => createServicesStyles(C), [C]);
+
+  const rowCardShadow =
+    Platform.OS === 'ios'
+      ? {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 8,
       }
-    : { elevation: 2 };
+      : { elevation: 2 };
 
-export default function ServicesScreen() {
-  const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch, isFetching } = useServicesQuery();
   const createMut = useCreateServiceMutation();
   const updateMut = useUpdateServiceMutation();
@@ -164,12 +295,12 @@ export default function ServicesScreen() {
             <MaterialIcons name="edit" size={22} color={C.textBody} />
           </Pressable>
           <Pressable hitSlop={8} style={styles.iconBtn} onPress={() => confirmDelete(item)}>
-            <MaterialIcons name="delete-outline" size={22} color="#e11d48" />
+            <MaterialIcons name="delete-outline" size={22} color={C.error} />
           </Pressable>
         </View>
       </View>
     ),
-    [confirmDelete, openEdit, toggleActive]
+    [C.error, C.textBody, C.textMuted, confirmDelete, openEdit, rowCardShadow, styles, toggleActive]
   );
 
   let body: ReactNode;
@@ -209,6 +340,7 @@ export default function ServicesScreen() {
               refetch();
             }}
             tintColor={C.actionPrimary}
+            colors={[C.actionPrimary]}
           />
         }
         ListEmptyComponent={
@@ -223,7 +355,6 @@ export default function ServicesScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.pageTitle}>Meus Serviços</Text>
-          {/* <Text style={styles.pageSubtitle}>Procedimentos oferecidos no salão.</Text> */}
         </View>
         <Pressable style={styles.headerBtn} onPress={openCreate} accessibilityRole="button">
           <MaterialIcons name="add" size={22} color={C.actionOnPrimary} />
@@ -243,131 +374,3 @@ export default function ServicesScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: C.surfaceCanvas,
-    paddingHorizontal: 18,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  pageTitle: {
-    fontFamily: F.serifItalicHeading,
-    fontSize: 30,
-    lineHeight: 36,
-    color: C.textHeading,
-  },
-  pageSubtitle: {
-    fontFamily: F.sansRegular,
-    fontSize: 15,
-    color: C.textBody,
-    marginTop: 4,
-    maxWidth: 240,
-  },
-  headerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: C.actionPrimary,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-    borderRadius: R.pill,
-  },
-  headerBtnLabel: {
-    fontFamily: F.sansSemiBold,
-    color: C.actionOnPrimary,
-    fontSize: 15,
-  },
-  centerFill: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  errorText: {
-    fontFamily: F.sansRegular,
-    color: C.error,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  retryBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: R.pill,
-    borderWidth: 1,
-    borderColor: C.borderSubtle,
-  },
-  retryLabel: {
-    fontFamily: F.sansMedium,
-    color: C.textHeading,
-  },
-  listContent: {
-    paddingTop: 4,
-    flexGrow: 1,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: C.surfaceElevated,
-    borderRadius: R.card,
-    borderWidth: 1,
-    borderColor: C.borderSoft,
-    padding: 14,
-    marginBottom: 12,
-  },
-  rowIconWrap: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  rowIconActive: {
-    backgroundColor: '#ecfdf5',
-  },
-  rowIconInactive: {
-    backgroundColor: C.surfaceMuted,
-  },
-  rowText: {
-    flex: 1,
-    minWidth: 0,
-  },
-  rowTitle: {
-    fontFamily: F.sansSemiBold,
-    fontSize: 16,
-    color: C.textHeading,
-  },
-  rowMeta: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 4,
-  },
-  rowMetaItem: {
-    fontFamily: F.sansRegular,
-    fontSize: 14,
-    color: C.textBody,
-  },
-  rowActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  iconBtn: {
-    padding: 6,
-    borderRadius: 8,
-  },
-  empty: {
-    fontFamily: F.sansRegular,
-    color: C.textMuted,
-    textAlign: 'center',
-    marginTop: 48,
-    paddingHorizontal: 24,
-  },
-});

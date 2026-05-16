@@ -4,14 +4,12 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BelezaproColors } from '@/constants/belezapro-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/src/theme/app-theme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const activeTint = BelezaproColors.actionPrimary;
-  const inactiveTint =
-    colorScheme === 'dark' ? '#9BA1A6' : '#a8a29e';
+  const { colors } = useAppTheme();
+  const activeTint = colors.actionPrimary;
+  const inactiveTint = colors.textMuted;
 
   return (
     <Tabs

@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, Pressable, StyleSheet, Text } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -7,10 +7,13 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 
+import { FontFamilies as F } from '@/constants/belezapro-theme';
 import { useAuth } from '@/src/auth/auth-context';
+import { useAppTheme } from '@/src/theme/app-theme';
 
 export default function HomeScreen() {
   const { logout, user } = useAuth();
+  const { scheme, colors, setScheme } = useAppTheme();
 
   return (
     <ParallaxScrollView
@@ -26,9 +29,64 @@ export default function HomeScreen() {
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <Pressable style={styles.logoutBtn} onPress={() => void logout()}>
-          <Text style={styles.logoutLabel}>Sair da conta</Text>
-        </Pressable>
+        <View style={styles.accountBar}>
+          <View style={styles.themeGroup} accessibilityRole="radiogroup" accessibilityLabel="Tema do app">
+            <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{ selected: scheme === 'light' }}
+              onPress={() => void setScheme('light')}
+              style={[
+                styles.themeChip,
+                {
+                  borderColor: colors.borderSubtle,
+                  backgroundColor: scheme === 'light' ? colors.actionPrimary : colors.surfaceMuted,
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.themeChipLabel,
+                  {
+                    color: scheme === 'light' ? colors.actionOnPrimary : colors.textBody,
+                  },
+                ]}>
+                Claro
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{ selected: scheme === 'dark' }}
+              onPress={() => void setScheme('dark')}
+              style={[
+                styles.themeChip,
+                {
+                  borderColor: colors.borderSubtle,
+                  backgroundColor: scheme === 'dark' ? colors.actionPrimary : colors.surfaceMuted,
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.themeChipLabel,
+                  {
+                    color: scheme === 'dark' ? colors.actionOnPrimary : colors.textBody,
+                  },
+                ]}>
+                Escuro
+              </Text>
+            </Pressable>
+          </View>
+          <Pressable
+            style={[
+              styles.logoutBtn,
+              {
+                backgroundColor: colors.surfaceMuted,
+                borderColor: colors.borderSoft,
+              },
+            ]}
+            onPress={() => void logout()}
+            accessibilityRole="button">
+            <Text style={[styles.logoutLabel, { color: colors.textHeading }]}>Sair da conta</Text>
+          </Pressable>
+        </View>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
@@ -97,6 +155,28 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
+  accountBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  themeGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  themeChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  themeChipLabel: {
+    fontFamily: F.sansSemiBold,
+    fontSize: 14,
+  },
   reactLogo: {
     height: 178,
     width: 290,
@@ -105,15 +185,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   logoutBtn: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#e8eaef',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
+    borderWidth: 1,
   },
   logoutLabel: {
+    fontFamily: F.sansSemiBold,
     fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
   },
 });

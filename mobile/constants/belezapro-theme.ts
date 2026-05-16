@@ -1,8 +1,10 @@
 /**
- * Mirrors frontend semantic tokens (tailwind/theme.css in Angular web).
+ * Semantic tokens (B&W): light = papel claro, dark = preto/cinza.
  */
 
-export const BelezaproColors = {
+export type AppColorScheme = 'light' | 'dark';
+
+const light = {
   surfaceCanvas: '#fafaf9',
   surfaceElevated: '#ffffff',
   surfaceMuted: '#f5f5f4',
@@ -16,7 +18,42 @@ export const BelezaproColors = {
   actionPrimaryHover: '#44403c',
   actionOnPrimary: '#ffffff',
   error: '#b3261e',
+  overlayScrim: 'rgba(28, 25, 23, 0.45)',
+  stateActiveMutedBg: '#e7e7e7',
+  stateActiveIcon: '#171717',
 } as const;
+
+const dark = {
+  surfaceCanvas: '#0a0a0a',
+  surfaceElevated: '#141414',
+  surfaceMuted: '#1a1a1a',
+  surfaceSubtle: '#2a2a2a',
+  borderSubtle: '#3f3f3f',
+  borderSoft: '#262626',
+  textMuted: '#8c8c8c',
+  textBody: '#d4d4d4',
+  textHeading: '#fafafa',
+  actionPrimary: '#fafafa',
+  actionPrimaryHover: '#e5e5e5',
+  actionOnPrimary: '#0a0a0a',
+  error: '#fca5a5',
+  overlayScrim: 'rgba(0, 0, 0, 0.72)',
+  stateActiveMutedBg: '#262626',
+  stateActiveIcon: '#fafafa',
+} as const;
+
+export type BelezaproColorTokens = { [K in keyof typeof light]: string };
+
+export const BelezaproLightColors = light as BelezaproColorTokens;
+
+export const BelezaproDarkColors = dark as BelezaproColorTokens;
+
+/** @deprecated Prefer useAppTheme().colors — kept for gradual migration */
+export const BelezaproColors: BelezaproColorTokens = BelezaproLightColors;
+
+export function getBelezaproColors(scheme: AppColorScheme): BelezaproColorTokens {
+  return scheme === 'dark' ? BelezaproDarkColors : BelezaproLightColors;
+}
 
 /** Resolved keys passed to useFonts — use as RN fontFamily */
 export const FontFamilies = {
