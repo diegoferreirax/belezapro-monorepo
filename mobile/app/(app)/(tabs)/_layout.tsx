@@ -45,6 +45,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="expenses"
+        options={{
+          title: 'Despesas',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="account-balance-wallet" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           href: null,

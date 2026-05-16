@@ -44,7 +44,7 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 
 ## Fase 6 — Despesas
 
-- [ ] Lista por mês/ano + CRUD + marcar pago
+- [x] Lista por mês/ano + CRUD + marcar pago
 
 ## Fase 7 — Usuários sistema (ROOT)
 

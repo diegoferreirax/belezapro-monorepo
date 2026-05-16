@@ -21,6 +21,10 @@ const light = {
   overlayScrim: 'rgba(28, 25, 23, 0.45)',
   stateActiveMutedBg: '#e7e7e7',
   stateActiveIcon: '#171717',
+  financePaidAccent: '#047857',
+  financePaidBg: '#ecfdf5',
+  financePendingAccent: '#c2410c',
+  financePendingBg: '#fff7ed',
 } as const;
 
 const dark = {
@@ -40,6 +44,10 @@ const dark = {
   overlayScrim: 'rgba(0, 0, 0, 0.72)',
   stateActiveMutedBg: '#262626',
   stateActiveIcon: '#fafafa',
+  financePaidAccent: '#6ee7b7',
+  financePaidBg: '#14532d',
+  financePendingAccent: '#fdba74',
+  financePendingBg: '#422006',
 } as const;
 
 export type BelezaproColorTokens = { [K in keyof typeof light]: string };
