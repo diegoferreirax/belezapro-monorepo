@@ -1,5 +1,6 @@
 package com.belezapro.belezapro_api.features.services.services;
 
+import com.belezapro.belezapro_api.features.services.dto.CreateServiceRequest;
 import com.belezapro.belezapro_api.features.services.models.ServiceItem;
 import com.belezapro.belezapro_api.features.services.repositories.ServiceItemRepository;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,12 @@ public class CatalogService {
         return repository.findAllByAdminId(adminId);
     }
 
-    public ServiceItem create(String adminId, ServiceItem item) {
+    public ServiceItem create(String adminId, CreateServiceRequest request) {
+        ServiceItem item = new ServiceItem();
+        item.setName(request.name());
+        item.setPrice(request.price());
+        item.setDurationMinutes(request.durationMinutes());
+        item.setIsActive(request.isActive() != null ? request.isActive() : Boolean.TRUE);
         item.setAdminId(adminId);
         item.setCreatedAt(Instant.now());
         return repository.save(item);

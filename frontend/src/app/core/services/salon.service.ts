@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Service } from '../models/salon.models';
+import { CreateServiceRequest, Service } from '../models/salon.models';
 import { ApiService } from './api.service';
 
 @Injectable({
@@ -8,13 +8,10 @@ import { ApiService } from './api.service';
 export class SalonService {
   private apiService = inject(ApiService);
 
-  // Signals for reactivity
   services = signal<Service[]>([]);
 
-  // Services — integrado com a API REST
   getServices() { return this.services(); }
 
-  /** Limpa cache em memória (logout / novo login). */
   clearTenantCache(): void {
     this.services.set([]);
   }
@@ -26,8 +23,8 @@ export class SalonService {
     });
   }
 
-  addService(service: Service) {
-    this.apiService.post<Service>('/services', service).subscribe({
+  addService(body: CreateServiceRequest) {
+    this.apiService.post<Service>('/services', body).subscribe({
       next: () => this.loadServices()
     });
   }

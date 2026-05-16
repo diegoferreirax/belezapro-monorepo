@@ -13,7 +13,7 @@ Resumo a partir de `frontend/src/app/core/services/`:
 | Auth | `POST /auth/login` — body `{ email, password }` → `{ token }` |
 | Agendamentos | `GET /appointments` (paginação Spring), `GET /appointments/range`, `GET /appointments/active/date/{date}`, `POST/PUT/DELETE /appointments/...`, `PATCH /appointments/cancel/date/{date}` |
 | Horários | `GET/PUT /schedule/config`, `GET/PUT /schedule/overrides` |
-| Serviços | `GET/POST /services`, `PUT/DELETE /services/{id}` |
+| Serviços | `GET /services`, **`POST /services`** (body `CreateServiceRequest`, sem `id`), `PUT/DELETE /services/{id}` |
 | Clientes | `GET/POST /clients`, `PUT /clients/{id}`, `PATCH /clients/{id}/toggle-block` |
 | Despesas | `GET /expenses?month=&year=`, `POST/PUT/DELETE`, `PATCH /expenses/{id}/paid` |
 | Usuários | `GET /users?page=&size=&...`, `POST/PUT/DELETE`, `PATCH /users/{id}/toggle-block` |
@@ -58,4 +58,4 @@ No web, `AuthService.logout` limpa caches de tenant (`SalonService`, `ClientServ
 | `QueryClient` | `mobile/src/api/query-client.ts` |
 | Provider | `mobile/app/_providers.tsx` (usado em `mobile/app/_layout.tsx`) |
 | Modelos + `mapSpringPageToPageResponse` | `mobile/src/types/salon.models.ts`, `mobile/src/types/pagination.models.ts` |
-| Auth (fase 2) | `mobile/src/auth/*`, `mobile/app/(auth)/login.tsx`, rotas em `mobile/app/index.tsx` e `mobile/app/(app)/_layout.tsx` |
+| Implementação catálogo (fase 4) | `mobile/src/features/services/queries.ts`, `mobile/app/(app)/(tabs)/services.tsx`, `ServiceFormModal.tsx` |

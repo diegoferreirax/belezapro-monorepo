@@ -28,13 +28,13 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 ## Fase 3 — Shell de navegação admin
 
 - [x] Grupo de rotas autenticadas vs públicas (Expo Router)
-- [ ] Tabs ou drawer alinhado às seções do admin web (appointments, schedule, …)
+- [x] Tabs alinhados ao admin (Início + **Serviços**; aba Explore oculta na barra; agendamentos/horários/etc. nas próximas fases)
 - [ ] Ocultar “Usuários” se não for ROOT
 
 ## Fase 4 — Serviços (catálogo)
 
-- [ ] Listagem `GET /services`
-- [ ] Criar / editar / excluir com mutations + invalidação
+- [x] Listagem `GET /services`
+- [x] Criar / editar / excluir com mutations + invalidação
 
 ## Fase 5 — Clientes
 

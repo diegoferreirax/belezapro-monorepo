@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SalonService } from '../../../core/services/salon.service';
-import { Service } from '../../../core/models/salon.models';
+import { CreateServiceRequest, Service } from '../../../core/models/salon.models';
 import { MatIconModule } from '@angular/material/icon';
 import { DurationFormatPipe } from '../../../shared/pipes/duration-format.pipe';
 import { ServiceModalComponent } from './service-modal/service-modal';
@@ -40,11 +40,11 @@ export class ServicesComponent implements OnInit {
     this.isModalOpen.set(false);
   }
 
-  async onServiceSaved(serviceData: Service) {
+  async onServiceSaved(serviceData: Service | CreateServiceRequest) {
     if (this.editingService()) {
-      await this.salonService.updateService(serviceData);
+      await this.salonService.updateService(serviceData as Service);
     } else {
-      await this.salonService.addService(serviceData);
+      await this.salonService.addService(serviceData as CreateServiceRequest);
     }
 
     this.closeModal();
