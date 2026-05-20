@@ -66,6 +66,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="schedule"
+        options={{
+          title: 'Horários',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="schedule" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           href: null,

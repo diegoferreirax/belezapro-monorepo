@@ -53,10 +53,10 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 
 ## Fase 8 — Horários (crítico)
 
-- [ ] Carregar e exibir config padrão e overrides
-- [ ] Modos padrão vs semana específica
-- [ ] Salvar com mesma regra de diff e payload stripado que o web
-- [ ] Fluxo de conflito ao fechar dia (modal + cancelamento em massa se aceito)
+- [x] Carregar e exibir config padrão e overrides
+- [x] Modos padrão vs semana específica
+- [x] Salvar com mesma regra de diff e payload stripado que o web
+- [x] Fluxo de conflito ao fechar dia (modal + cancelamento em massa se aceito)
 
 ## Fase 9 — Agendamentos
 
