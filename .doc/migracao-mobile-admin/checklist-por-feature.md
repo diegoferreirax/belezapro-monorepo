@@ -29,7 +29,7 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 
 - [x] Grupo de rotas autenticadas vs públicas (Expo Router)
 - [x] Tabs alinhados ao admin (Início + **Serviços**; aba Explore oculta na barra; agendamentos/horários/etc. nas próximas fases)
-- [ ] Ocultar “Usuários” se não for ROOT
+- [x] Ocultar “Usuários” se não for ROOT
 
 ## Fase 4 — Serviços (catálogo)
 
@@ -48,8 +48,8 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 
 ## Fase 7 — Usuários sistema (ROOT)
 
-- [ ] Lista paginada + filtros
-- [ ] CRUD / toggle block conforme `SystemUserService`
+- [x] Lista paginada + filtros
+- [x] CRUD / toggle block conforme `SystemUserService`
 
 ## Fase 8 — Horários (crítico)
 

@@ -121,7 +121,14 @@ function createExpenseScreenStyles(C: BelezaproColorTokens) {
       color: C.textMuted,
       marginBottom: 16,
     },
+    periodBar: {
+      flexDirection: 'row',
+      alignItems: 'stretch',
+      gap: 10,
+      marginBottom: 18,
+    },
     periodRow: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -131,7 +138,27 @@ function createExpenseScreenStyles(C: BelezaproColorTokens) {
       borderColor: C.borderSoft,
       paddingVertical: 10,
       paddingHorizontal: 8,
-      marginBottom: 18,
+      minWidth: 0,
+    },
+    todayJumpBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: R.controlLg,
+      borderWidth: 1,
+      borderColor: C.borderSubtle,
+      backgroundColor: C.surfaceMuted,
+    },
+    todayJumpBtnDisabled: {
+      opacity: 0.42,
+    },
+    todayJumpLabel: {
+      fontFamily: F.sansSemiBold,
+      fontSize: 12,
+      color: C.textHeading,
     },
     periodChevron: {
       padding: 8,
@@ -375,6 +402,17 @@ export default function ExpensesScreen() {
     setYear(next.year);
   }, [month, year]);
 
+  const isViewingCurrentMonth = useMemo(() => {
+    const n = new Date();
+    return month === n.getMonth() + 1 && year === n.getFullYear();
+  }, [month, year]);
+
+  const goToCurrentMonth = useCallback(() => {
+    const n = new Date();
+    setMonth(n.getMonth() + 1);
+    setYear(n.getFullYear());
+  }, []);
+
   const openCreate = useCallback(() => {
     setEditing(null);
     setModalOpen(true);
@@ -441,16 +479,28 @@ export default function ExpensesScreen() {
       <View style={{ marginBottom: 8 }}>
         <Text style={styles.subtitle}>Resumo com total do mês, pago e pendente.</Text>
 
-        <View style={styles.periodRow}>
-          <Pressable style={styles.periodChevron} onPress={goPrev} accessibilityLabel="Mês anterior">
-            <MaterialIcons name="chevron-left" size={28} color={C.textHeading} />
-          </Pressable>
-          <View style={styles.periodLabel}>
-            <Text style={styles.periodMonth}>{MONTH_LABELS[month - 1]}</Text>
-            <Text style={styles.periodYear}>{year}</Text>
+        <View style={styles.periodBar}>
+          <View style={styles.periodRow}>
+            <Pressable style={styles.periodChevron} onPress={goPrev} accessibilityLabel="Mês anterior">
+              <MaterialIcons name="chevron-left" size={28} color={C.textHeading} />
+            </Pressable>
+            <View style={styles.periodLabel}>
+              <Text style={styles.periodMonth}>{MONTH_LABELS[month - 1]}</Text>
+              <Text style={styles.periodYear}>{year}</Text>
+            </View>
+            <Pressable style={styles.periodChevron} onPress={goNext} accessibilityLabel="Próximo mês">
+              <MaterialIcons name="chevron-right" size={28} color={C.textHeading} />
+            </Pressable>
           </View>
-          <Pressable style={styles.periodChevron} onPress={goNext} accessibilityLabel="Próximo mês">
-            <MaterialIcons name="chevron-right" size={28} color={C.textHeading} />
+          <Pressable
+            style={[styles.todayJumpBtn, isViewingCurrentMonth && styles.todayJumpBtnDisabled]}
+            onPress={goToCurrentMonth}
+            disabled={isViewingCurrentMonth}
+            accessibilityRole="button"
+            accessibilityLabel="Ir para o mês atual"
+            accessibilityState={{ disabled: isViewingCurrentMonth }}>
+            <MaterialIcons name="today" size={20} color={C.textHeading} />
+            <Text style={styles.todayJumpLabel}>Mês atual</Text>
           </Pressable>
         </View>
 
@@ -530,6 +580,8 @@ export default function ExpensesScreen() {
       C.textMuted,
       goNext,
       goPrev,
+      goToCurrentMonth,
+      isViewingCurrentMonth,
       month,
       paidShare,
       pendingShare,

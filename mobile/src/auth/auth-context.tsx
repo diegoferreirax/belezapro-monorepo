@@ -2,7 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { router } from 'expo-router';
 
 import { apiRequest } from '@/src/api/client';
-import { decodeSessionUser, isAdminRole, isTokenExpired, type SessionUser } from '@/src/auth/decode-session';
+import {
+  decodeSessionUser,
+  isAdminRole,
+  isRootRole,
+  isTokenExpired,
+  type SessionUser,
+} from '@/src/auth/decode-session';
 import { setSessionMemoryToken } from '@/src/auth/session-memory';
 import { clearPersistedSession, loadPersistedToken, persistSessionToken } from '@/src/auth/session-actions';
 import { setUnauthorizedHandler } from '@/src/auth/on-unauthorized';
@@ -11,6 +17,7 @@ type AuthContextValue = {
   readonly user: SessionUser | null;
   readonly isReady: boolean;
   readonly isAdmin: boolean;
+  readonly isRoot: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -26,6 +33,7 @@ export function AuthProvider({ children }: Props) {
   const [isReady, setIsReady] = useState(false);
 
   const isAdmin = user !== null && isAdminRole(user.role);
+  const isRoot = user !== null && isRootRole(user.role);
 
   const logout = useCallback(async () => {
     await clearPersistedSession();
@@ -100,10 +108,11 @@ export function AuthProvider({ children }: Props) {
       user,
       isReady,
       isAdmin,
+      isRoot,
       login,
       logout,
     }),
-    [user, isReady, isAdmin, login, logout]
+    [user, isReady, isAdmin, isRoot, login, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

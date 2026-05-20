@@ -51,3 +51,7 @@ export function decodeSessionUser(token: string): SessionUser {
 export function isAdminRole(role: UserRole): boolean {
   return role === 'ADMIN' || role === 'ROOT';
 }
+
+export function isRootRole(role: UserRole): boolean {
+  return role === 'ROOT';
+}
