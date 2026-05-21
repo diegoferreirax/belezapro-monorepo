@@ -6,7 +6,7 @@ COPY angular.json ./
 COPY tsconfig.json tsconfig.app.json ./
 COPY .postcssrc.json ./
 
-RUN npm ci
+RUN npm install
 
 COPY src ./src/
 COPY public ./public
