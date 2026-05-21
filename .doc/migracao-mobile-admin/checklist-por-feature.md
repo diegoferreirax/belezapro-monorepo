@@ -60,10 +60,10 @@ Use este arquivo como controle entre pausas para revisão. Marque os itens confo
 
 ## Fase 9 — Agendamentos
 
-- [ ] Lista paginada + busca
-- [ ] Modais criar/editar/cancelar/concluir (regras de status como no web)
-- [ ] Calendário semanal (implementação alinhada a [agenda-e-horarios.md](./agenda-e-horarios.md))
-- [ ] Integração com dados de schedule (bounds, bloqueios, slots)
+- [x] Lista paginada + busca
+- [x] Modais criar/editar/cancelar/concluir (regras de status como no web)
+- [x] Calendário semanal (implementação alinhada a [agenda-e-horarios.md](./agenda-e-horarios.md))
+- [x] Integração com dados de schedule (bounds, bloqueios, slots)
 
 ---
 
