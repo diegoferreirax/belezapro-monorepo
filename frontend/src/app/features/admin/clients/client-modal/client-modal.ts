@@ -5,11 +5,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { Client } from '../../../../core/models/salon.models';
 import { ClientService } from '../../../../core/services/client.service';
 import { EmailMaskDirective } from '../../../../shared/directives/email-mask.directive';
+import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
 
 @Component({
   selector: 'app-client-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, EmailMaskDirective],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, EmailMaskDirective, ModalShellComponent],
   templateUrl: './client-modal.html'
 })
 export class ClientModalComponent implements OnChanges {

@@ -83,6 +83,18 @@ public class DataSeeder implements CommandLineRunner {
                 joaoAdmin = userRepository.save(joaoAdmin);
                 System.out.println("Usuário Joao seedado! Email: joao@belezapro.com | Senha: admin123");
 
+                User root = User.builder()
+                        .name("Dono do Sistema")
+                        .email("root@belezapro.com")
+                        .password(passwordEncoder.encode("root123"))
+                        .companyId(mariasSalon.getId())
+                        .role(Role.ROOT)
+                        .isBlocked(false)
+                        .build();
+
+                userRepository.save(root);
+                System.out.println("Usuário ROOT seedado! Email: root@belezapro.com | Senha: root123");
+
                 if (serviceItemRepository.count() == 0) {
                     String mariaId = mariaAdmin.getId();
                     String joaoId = joaoAdmin.getId();
@@ -109,25 +121,24 @@ public class DataSeeder implements CommandLineRunner {
                             ServiceItem.builder().name("Platinado / Luzes").price(new BigDecimal("120.0")).durationMinutes(120).isActive(true).adminId(joaoId).build(),
                             ServiceItem.builder().name("Sobrancelha").price(new BigDecimal("15.0")).durationMinutes(30).isActive(true).adminId(joaoId).build(),
                             ServiceItem.builder().name("Hidratação Capilar").price(new BigDecimal("40.0")).durationMinutes(30).isActive(true).adminId(joaoId).build(),
-                            ServiceItem.builder().name("Pigmentação de Barba").price(new BigDecimal("45.0")).durationMinutes(240).isActive(true).adminId(joaoId).build()
+                            ServiceItem.builder().name("Pigmentação de Barba").price(new BigDecimal("45.0")).durationMinutes(240).isActive(true).adminId(joaoId).build(),
+
+                            ServiceItem.builder().name("Serviço 1").price(new BigDecimal("10.0")).durationMinutes(30).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 2").price(new BigDecimal("20.0")).durationMinutes(60).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 3").price(new BigDecimal("30.0")).durationMinutes(90).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 4").price(new BigDecimal("40.0")).durationMinutes(120).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 5").price(new BigDecimal("50.0")).durationMinutes(150).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 6").price(new BigDecimal("60.0")).durationMinutes(180).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 7").price(new BigDecimal("70.0")).durationMinutes(210).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 8").price(new BigDecimal("80.0")).durationMinutes(240).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 9").price(new BigDecimal("90.0")).durationMinutes(270).isActive(true).adminId(root.getId()).build(),
+                            ServiceItem.builder().name("Serviço 10").price(new BigDecimal("100.0")).durationMinutes(300).isActive(true).adminId(root.getId()).build()
                     );
 
                     serviceItemRepository.saveAll(initialServices);
                     System.out.println("Catálogo Base atrelado The ADMIN seedado com sucesso.");
                 }
             }
-
-            User root = User.builder()
-                    .name("Dono do Sistema")
-                    .email("root@belezapro.com")
-                    .password(passwordEncoder.encode("root123"))
-                    .companyId(mariasSalon.getId())
-                    .role(Role.ROOT)
-                    .isBlocked(false)
-                    .build();
-
-            userRepository.save(root);
-            System.out.println("Usuário ROOT seedado! Email: root@belezapro.com | Senha: root123");
         }
     }
 }

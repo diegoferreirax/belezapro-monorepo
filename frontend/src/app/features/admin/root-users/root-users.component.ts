@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { AsyncPipe, DatePipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { SystemUserService, SystemUser } from '../../../core/services/system-user.service';
@@ -12,7 +12,7 @@ import { PageResponse } from '../../../core/models/pagination.models';
 @Component({
   selector: 'app-root-users',
   standalone: true,
-  imports: [AsyncPipe, NgIf, NgFor, DatePipe, MatIconModule, FormsModule, RootUsersModalComponent, PaginationComponent],
+  imports: [AsyncPipe, NgIf, NgFor, MatIconModule, FormsModule, RootUsersModalComponent, PaginationComponent],
   template: `
     <div class="p-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -37,7 +37,7 @@ import { PageResponse } from '../../../core/models/pagination.models';
       </div>
 
       <!-- Painel de Filtros Avançados -->
-      <div *ngIf="isFiltersOpen" class="bg-white p-6 rounded-lg shadow mb-6 animate-in fade-in slide-in-from-top-4 duration-200 border border-stone-100">
+      <div *ngIf="isFiltersOpen" class="bg-surface-elevated p-6 rounded-lg shadow mb-6 bp-animate-panel-in border border-border-soft">
         <h3 class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-4">Pesquisa Combinada</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>

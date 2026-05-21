@@ -1,0 +1,114 @@
+@keyframes bp-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bp-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Material icon font: consistent box without forcing fixed 24px layout */
+mat-icon.mat-icon {
+  width: auto;
+  height: auto;
+  overflow: visible;
+}
+
+@utility bp-animate-modal-in {
+  animation: bp-modal-in 200ms ease-out both;
+}
+
+@utility bp-animate-panel-in {
+  animation: bp-panel-in 200ms ease-out both;
+}
+
+@utility bp-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+@utility bp-modal-backdrop-muted {
+  background-color: rgb(28 25 23 / 0.4);
+}
+
+@utility bp-modal-backdrop-emphasis {
+  background-color: rgb(28 25 23 / 0.6);
+}
+
+@utility bp-modal-panel {
+  @apply w-full overflow-hidden bg-surface-elevated flex flex-col transform transition-all;
+  max-width: min(28rem, 100%);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-modal);
+}
+
+@utility bp-modal-panel-lg {
+  max-width: min(42rem, 100%);
+}
+
+@utility bp-modal-panel-tall {
+  max-height: 90vh;
+}
+
+@utility bp-field-label {
+  @apply block text-xs font-bold text-text-muted uppercase tracking-widest mb-1;
+}
+
+@utility bp-input {
+  @apply w-full p-3 bg-surface-muted border border-border-soft rounded-control text-text-heading;
+  @apply focus:outline-none focus:border-border-subtle transition-colors;
+}
+
+@utility bp-input-lg {
+  @apply w-full p-4 mt-1 bg-surface-muted border border-border-soft rounded-control-lg text-text-heading;
+  @apply focus:outline-none focus:border-border-subtle transition-colors;
+}
+
+@utility bp-btn-primary {
+  @apply bg-action-primary text-action-on-primary font-medium transition-colors;
+  @apply hover:bg-action-primary-hover disabled:opacity-50;
+}
+
+@utility bp-btn-primary-pill {
+  @apply w-full bg-action-primary text-action-on-primary p-4 rounded-pill font-medium;
+  @apply transition-colors hover:bg-action-primary-hover disabled:opacity-50;
+}
+
+@utility bp-btn-modal-primary {
+  @apply flex-1 py-3.5 rounded-control-lg font-medium text-action-on-primary;
+  @apply bg-action-primary hover:bg-action-primary-hover disabled:opacity-50;
+  @apply transition-colors shadow-lg shadow-stone-900/25;
+}
+
+@utility bp-btn-modal-secondary {
+  @apply flex-1 py-3.5 border border-border-subtle rounded-control-lg text-text-body;
+  @apply hover:bg-surface-muted transition-colors font-medium;
+}
+
+@utility bp-nav-link {
+  @apply flex items-center gap-3 p-3 rounded-control-lg text-text-body transition-colors;
+  @apply hover:bg-surface-muted;
+}
+
+@utility bp-nav-link-active {
+  @apply bg-surface-muted text-text-heading;
+}

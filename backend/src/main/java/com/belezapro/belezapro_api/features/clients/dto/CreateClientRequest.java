@@ -1,9 +1,9 @@
-package com.belezapro.belezapro_api.features.clients.models;
+package com.belezapro.belezapro_api.features.clients.dto;
 
 import lombok.Data;
 
 @Data
-public class CreateClientDto {
+public class CreateClientRequest {
     private String name;
     private String email;
     private String phone;

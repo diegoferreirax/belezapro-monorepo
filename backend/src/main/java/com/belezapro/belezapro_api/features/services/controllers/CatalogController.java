@@ -1,6 +1,7 @@
 package com.belezapro.belezapro_api.features.services.controllers;
 
 import com.belezapro.belezapro_api.features.authentication.annotation.RequireRoles;
+import com.belezapro.belezapro_api.features.services.dto.CreateServiceRequest;
 import com.belezapro.belezapro_api.features.services.models.ServiceItem;
 import com.belezapro.belezapro_api.features.services.services.CatalogService;
 import org.springframework.http.ResponseEntity;
@@ -30,8 +31,8 @@ public class CatalogController {
     }
 
     @PostMapping
-    public ResponseEntity<ServiceItem> create(HttpServletRequest request, @RequestBody ServiceItem item) {
-        return ResponseEntity.ok(catalogService.create(getAdminId(request), item));
+    public ResponseEntity<ServiceItem> create(HttpServletRequest request, @RequestBody CreateServiceRequest body) {
+        return ResponseEntity.ok(catalogService.create(getAdminId(request), body));
     }
 
     @PutMapping("/{id}")

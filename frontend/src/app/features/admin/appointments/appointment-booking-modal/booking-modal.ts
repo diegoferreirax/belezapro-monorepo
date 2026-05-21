@@ -2,12 +2,13 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { BookingFormComponent } from '../../../../shared/components/booking-form/booking-form.component';
+import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
 import { Appointment } from '../../../../core/models/salon.models';
 
 @Component({
   selector: 'app-appointment-booking-modal',
   standalone: true,
-  imports: [CommonModule, MatIconModule, BookingFormComponent],
+  imports: [CommonModule, MatIconModule, BookingFormComponent, ModalShellComponent],
   templateUrl: './booking-modal.html'
 })
 export class AppointmentBookingModalComponent {

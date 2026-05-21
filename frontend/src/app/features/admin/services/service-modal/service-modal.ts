@@ -2,13 +2,14 @@ import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChange
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Service } from '../../../../core/models/salon.models';
+import { CreateServiceRequest, Service } from '../../../../core/models/salon.models';
 import { DurationFormatPipe } from '../../../../shared/pipes/duration-format.pipe';
+import { ModalShellComponent } from '../../../../shared/components/modal-shell/modal-shell.component';
 
 @Component({
   selector: 'app-service-modal',
   standalone: true,
-  imports: [CommonModule, MatIconModule, ReactiveFormsModule, DurationFormatPipe],
+  imports: [CommonModule, MatIconModule, ReactiveFormsModule, DurationFormatPipe, ModalShellComponent],
   templateUrl: './service-modal.html'
 })
 export class ServiceModalComponent implements OnChanges {
@@ -17,7 +18,7 @@ export class ServiceModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() service: Service | null = null;
   @Output() closed = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<Service>();
+  @Output() saved = new EventEmitter<Service | CreateServiceRequest>();
 
   // Opções de duração de 30 em 30 minutos (até 6 horas)
   durationOptions = Array.from({ length: 12 }, (_, i) => (i + 1) * 30);
@@ -47,14 +48,24 @@ export class ServiceModalComponent implements OnChanges {
     if (this.serviceForm.invalid) return;
 
     const formValue = this.serviceForm.getRawValue();
-    const serviceData: Service = {
-      id: this.service?.id || crypto.randomUUID(),
+    if (this.service) {
+      const serviceData: Service = {
+        ...this.service,
+        name: formValue.name!,
+        price: formValue.price!,
+        durationMinutes: formValue.durationMinutes!,
+        isActive: formValue.isActive!
+      };
+      this.saved.emit(serviceData);
+      return;
+    }
+
+    const createBody: CreateServiceRequest = {
       name: formValue.name!,
       price: formValue.price!,
       durationMinutes: formValue.durationMinutes!,
       isActive: formValue.isActive!
     };
-
-    this.saved.emit(serviceData);
+    this.saved.emit(createBody);
   }
 }

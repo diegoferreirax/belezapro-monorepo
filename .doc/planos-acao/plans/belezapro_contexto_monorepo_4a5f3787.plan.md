@@ -16,9 +16,9 @@ Plataforma de **agendamento automatizado** para serviços de beleza/cuidados dos
 
 - **Reserva pública** (`/booking`): cliente escolhe serviços, horário e confirma sem conta tradicional (fluxo público da API).
 - **Portal do cliente** (`/entrar` + `/client`): login por **OTP** e gestão dos próprios agendamentos.
-- **Painel admin** (`/admin`): calendário/lista de agendamentos, clientes, catálogo de serviços, grade semanal e exceções, usuários (área restrita a **root**), e **despesas** (persistidas via API no MongoDB).
+- **Painel admin** (`/admin`): calendário/lista de agendamentos, clientes, catálogo de serviços, grade semanal e exceções, usuários (área restrita a **root**), e **despesas** (hoje só no browser).
 
-A descrição oficial está em [frontend/README.md](frontend/README.md).
+A descrição oficial está em [frontend/README.md](frontend/README.md). **Observação:** o README ainda cita SQLite/Express para SSR/API; o backend deste monorepo é **Spring Boot + MongoDB** — vale alinhar documentação quando for conveniente.
 
 ---
 
@@ -41,7 +41,7 @@ Não há app mobile nem worker separado neste repositório.
 
 **Frontend:** Angular 21, rotas lazy-loaded, guards (`adminGuard`, `clientGuard`, `rootGuard`). Arquitetura em camadas: `core` (serviços singleton, guards), `shared`, `features` — detalhes em [frontend/docs/architecture.md](frontend/docs/architecture.md).
 
-**Dados:** persistência principal no **MongoDB**. Todas as features — incluindo **despesas** — consomem a API REST (`ExpenseController`) e persistem no banco.
+**Dados:** persistência principal no **MongoDB**. A feature **despesas** no admin usa **localStorage** no cliente ([frontend/src/app/core/services/expense.service.ts](frontend/src/app/core/services/expense.service.ts)), sem espelho na API Java.
 
 ---
 
@@ -52,7 +52,6 @@ Pacote base: `com.belezapro.belezapro_api`, com `config`, `common` e **`features
 - **appointments** — núcleo do agendamento; inclui fluxo **público** (`PublicBookingController` em `/api/v1/public`) e portal cliente (`ClientPortalController`).
 - **authentication** — JWT, OTP, e-mail; `AuthController`.
 - **clients**, **companies**, **users** — cadastros e papéis (ex.: root).
-- **expenses** — despesas por profissional (`ExpenseController`).
 - **schedule** — disponibilidade, overrides, slots ocupados.
 - **services** — catálogo (`CatalogController`).
 

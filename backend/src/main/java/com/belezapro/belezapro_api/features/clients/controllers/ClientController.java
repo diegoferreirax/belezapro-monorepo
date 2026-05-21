@@ -2,8 +2,8 @@ package com.belezapro.belezapro_api.features.clients.controllers;
 
 import com.belezapro.belezapro_api.features.authentication.annotation.RequireRoles;
 import com.belezapro.belezapro_api.features.clients.models.ClientDto;
-import com.belezapro.belezapro_api.features.clients.models.CreateClientDto;
-import com.belezapro.belezapro_api.features.clients.models.UpdateClientDto;
+import com.belezapro.belezapro_api.features.clients.dto.CreateClientRequest;
+import com.belezapro.belezapro_api.features.clients.dto.UpdateClientRequest;
 import com.belezapro.belezapro_api.features.clients.services.ClientService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -32,15 +32,15 @@ public class ClientController {
     }
 
     @PostMapping
-    public ResponseEntity<ClientDto> create(HttpServletRequest request, @RequestBody CreateClientDto dto) {
-        return ResponseEntity.ok(clientService.createClient(getAdminId(request), dto));
+    public ResponseEntity<ClientDto> create(HttpServletRequest request, @RequestBody CreateClientRequest body) {
+        return ResponseEntity.ok(clientService.createClient(getAdminId(request), body));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ClientDto> update(HttpServletRequest request,
                                             @PathVariable String id,
-                                            @RequestBody UpdateClientDto dto) {
-        return ResponseEntity.ok(clientService.updateClient(id, getAdminId(request), dto));
+                                            @RequestBody UpdateClientRequest body) {
+        return ResponseEntity.ok(clientService.updateClient(id, getAdminId(request), body));
     }
 
     @PatchMapping("/{id}/toggle-block")

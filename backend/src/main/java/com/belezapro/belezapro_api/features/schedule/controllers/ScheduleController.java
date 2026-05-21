@@ -25,8 +25,6 @@ public class ScheduleController {
         return (String) request.getAttribute("authenticatedUserId");
     }
 
-    // ─── Configs padrão (por dia da semana) ──────────────────────────────────
-
     @GetMapping("/config")
     public ResponseEntity<List<ScheduleConfig>> getDefaultConfigs(HttpServletRequest request) {
         return ResponseEntity.ok(scheduleService.getDefaultConfigs(getAdminId(request)));
@@ -39,8 +37,6 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.saveDefaultConfigs(getAdminId(request), configs));
     }
 
-    // ─── Overrides (por data específica) ─────────────────────────────────────
-
     @GetMapping("/overrides")
     public ResponseEntity<List<ScheduleOverride>> getOverrides(HttpServletRequest request) {
         return ResponseEntity.ok(scheduleService.getOverrides(getAdminId(request)));
@@ -52,8 +48,6 @@ public class ScheduleController {
             @RequestBody List<ScheduleOverride> overrides) {
         return ResponseEntity.ok(scheduleService.saveOverrides(getAdminId(request), overrides));
     }
-
-    // ─── Config efetiva para uma data ────────────────────────────────────────
 
     @GetMapping("/date/{date}")
     public ResponseEntity<ScheduleConfig> getConfigForDate(

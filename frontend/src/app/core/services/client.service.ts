@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiService } from './api.service';
-import { Client } from '../models/salon.models';
+import { Client, CreateClientRequest, UpdateClientRequest } from '../models/salon.models';
 import { Observable } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 
@@ -27,14 +27,14 @@ export class ClientService {
     });
   }
 
-  createClient(data: Omit<Client, 'id' | 'isBlocked' | 'linkedAt'>): Observable<Client[]> {
+  createClient(data: CreateClientRequest): Observable<Client[]> {
     return this.apiService.post<Client>('/clients', data).pipe(
       switchMap(() => this.fetchClients()),
       tap((clients: Client[]) => this.clients.set(clients))
     );
   }
 
-  updateClient(id: string, data: { name: string; phone: string }): Observable<Client[]> {
+  updateClient(id: string, data: UpdateClientRequest): Observable<Client[]> {
     return this.apiService.put<Client>(`/clients/${id}`, data).pipe(
       switchMap(() => this.fetchClients()),
       tap((clients: Client[]) => this.clients.set(clients))
@@ -48,7 +48,7 @@ export class ClientService {
     );
   }
 
-  ensureClient(data: Omit<Client, 'id' | 'isBlocked' | 'linkedAt'>): Observable<Client> {
+  ensureClient(data: CreateClientRequest): Observable<Client> {
     return this.apiService.post<Client>('/clients', data);
   }
 }

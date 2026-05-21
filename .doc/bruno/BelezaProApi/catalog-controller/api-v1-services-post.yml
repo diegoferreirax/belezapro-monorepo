@@ -2,6 +2,7 @@ info:
   name: api/v1/services
   type: http
   seq: 4
+  docs: POST cria serviço. Corpo = CreateServiceRequest (name, price, durationMinutes, isActive). Sem id.
 
 http:
   method: POST
